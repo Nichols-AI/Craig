@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/92fd93ed-e71b-4b94-b270-50684323dd00" alt="Claudia Logo" width="120" height="120">
+  <img src="https://github.com/user-attachments/assets/92fd93ed-e71b-4b94-b270-50684323dd00" alt="Craig Logo" width="120" height="120">
 
-  <h1>Claudia</h1>
+  <h1>Craig</h1>
   
   <p>
-    <strong>A powerful GUI app and Toolkit for Claude Code</strong>
+    <strong>A powerful Multi-AI Desktop Client for Claude Code and Gemini CLI</strong>
   </p>
   <p>
-    <strong>Create custom agents, manage interactive Claude Code sessions, run secure background agents, and more.</strong>
+    <strong>Create custom agents, manage interactive AI sessions, run secure background agents with multiple AI providers, and more.</strong>
   </p>
   
   <p>
@@ -18,27 +18,37 @@
   </p>
 </div>
 
-![457013521-6133a738-d0cb-4d3e-8746-c6768c82672c](https://github.com/user-attachments/assets/a028de9e-d881-44d8-bae5-7326ab3558b9)
-
-https://github.com/user-attachments/assets/bf0bdf9d-ba91-45af-9ac4-7274f57075cf
+![Craig Multi-AI Desktop Client](https://github.com/user-attachments/assets/a028de9e-d881-44d8-bae5-7326ab3558b9)
 
 > [!TIP]
-> **⭐ Star the repo and follow [@getAsterisk](https://x.com/getAsterisk) on X for early access to `asteria-swe-v0`**.
+> **⭐ Star the repo and follow [@NicholsAI](https://x.com/nichols_ai) on X for updates on multi-AI development tools**.
+
+> [!NOTE]
+> **Craig is forked from [Claudia](https://github.com/getAsterisk/claudia) by Asterisk. All original features are preserved while adding comprehensive multi-AI provider support.**
 
 ## 🌟 Overview
 
-**Claudia** is a powerful desktop application that transforms how you interact with Claude Code. Built with Tauri 2, it provides a beautiful GUI for managing your Claude Code sessions, creating custom agents, tracking usage, and much more.
+**Craig** is a powerful desktop application that transforms how you interact with multiple AI services. Built with Tauri 2, it provides a beautiful unified GUI for managing Claude Code and Gemini CLI sessions, creating custom agents, tracking usage across providers, and much more.
 
-Think of Claudia as your command center for Claude Code - bridging the gap between the command-line tool and a visual experience that makes AI-assisted development more intuitive and productive.
+Think of Craig as your command center for AI-assisted development - bridging the gap between multiple command-line AI tools and a visual experience that makes multi-AI workflows more intuitive and productive.
+
+### 🆕 What's New in Craig
+
+- **🤖 Multi-AI Support**: Seamlessly switch between Claude Code and Gemini CLI
+- **🔄 Unified Interface**: Single app for multiple AI providers
+- **📊 Provider-Aware Analytics**: Track usage and costs across all AI services
+- **⚡ Seamless Switching**: Change AI providers mid-conversation
+- **💼 Pro Subscription Support**: Full support for both Claude Pro and Gemini Pro
 
 ## 📋 Table of Contents
 
 - [🌟 Overview](#-overview)
 - [✨ Features](#-features)
+  - [🤖 Multi-AI Provider Support](#-multi-ai-provider-support)
   - [🗂️ Project & Session Management](#️-project--session-management)
   - [🤖 CC Agents](#-cc-agents)
   - [🛡️ Advanced Sandboxing](#️-advanced-sandboxing)
-  - [📊 Usage Analytics Dashboard](#-usage-analytics-dashboard)
+  - [📊 Multi-Provider Analytics Dashboard](#-multi-provider-analytics-dashboard)
   - [🔌 MCP Server Management](#-mcp-server-management)
   - [⏰ Timeline & Checkpoints](#-timeline--checkpoints)
   - [📝 CLAUDE.md Management](#-claudemd-management)
@@ -46,6 +56,7 @@ Think of Claudia as your command center for Claude Code - bridging the gap betwe
   - [Getting Started](#getting-started)
   - [Managing Projects](#managing-projects)
   - [Creating Agents](#creating-agents)
+  - [Multi-AI Workflows](#multi-ai-workflows)
   - [Tracking Usage](#tracking-usage)
   - [Working with MCP Servers](#working-with-mcp-servers)
 - [🚀 Installation](#-installation)
@@ -58,14 +69,24 @@ Think of Claudia as your command center for Claude Code - bridging the gap betwe
 
 ## ✨ Features
 
+### 🤖 **Multi-AI Provider Support**
+- **Unified Interface**: Single desktop app for Claude Code and Gemini CLI
+- **Seamless Provider Switching**: Change AI providers mid-conversation without losing context
+- **Provider-Specific Settings**: Individual configuration for each AI service
+- **Subscription Management**: Full support for Claude Pro and Gemini Pro subscriptions
+- **Model Selection**: Choose from available models for each provider
+- **API Key Management**: Secure storage and handling of credentials for all providers
+
 ### 🗂️ **Project & Session Management**
 - **Visual Project Browser**: Navigate through all your Claude Code projects in `~/.claude/projects/`
 - **Session History**: View and resume past coding sessions with full context
 - **Smart Search**: Find projects and sessions quickly with built-in search
 - **Session Insights**: See first messages, timestamps, and session metadata at a glance
+- **Multi-Provider Sessions**: Sessions can span multiple AI providers
 
 ### 🤖 **CC Agents**
 - **Custom AI Agents**: Create specialized agents with custom system prompts and behaviors
+- **Multi-Provider Agents**: Agents can use any configured AI provider
 - **Agent Library**: Build a collection of purpose-built agents for different tasks
 - **Secure Execution**: Run agents in sandboxed environments with fine-grained permissions
 - **Execution History**: Track all agent runs with detailed logs and performance metrics
@@ -76,11 +97,13 @@ Think of Claudia as your command center for Claude Code - bridging the gap betwe
 - **Violation Tracking**: Monitor and log all security violations in real-time
 - **Import/Export**: Share sandbox profiles across teams and systems
 
-### 📊 **Usage Analytics Dashboard**
-- **Cost Tracking**: Monitor your Claude API usage and costs in real-time
-- **Token Analytics**: Detailed breakdown by model, project, and time period
-- **Visual Charts**: Beautiful charts showing usage trends and patterns
+### 📊 **Multi-Provider Analytics Dashboard**
+- **Cross-Provider Cost Tracking**: Monitor usage and costs across Claude and Gemini
+- **Provider Comparison**: Compare performance and costs between AI services
+- **Token Analytics**: Detailed breakdown by model, project, provider, and time period
+- **Visual Charts**: Beautiful charts showing usage trends and patterns across providers
 - **Export Data**: Export usage data for accounting and analysis
+- **Budget Tracking**: Set and monitor spending limits per provider
 
 ### 🔌 **MCP Server Management**
 - **Server Registry**: Manage Model Context Protocol servers from a central UI
@@ -105,9 +128,10 @@ Think of Claudia as your command center for Claude Code - bridging the gap betwe
 
 ### Getting Started
 
-1. **Launch Claudia**: Open the application after installation
+1. **Launch Craig**: Open the application after installation
 2. **Welcome Screen**: Choose between CC Agents or CC Projects
-3. **First Time Setup**: Claudia will automatically detect your `~/.claude` directory
+3. **First Time Setup**: Craig will automatically detect your `~/.claude` directory
+4. **Configure AI Providers**: Set up Claude Code and/or Gemini CLI API keys
 
 ### Managing Projects
 
@@ -118,6 +142,7 @@ CC Projects → Select Project → View Sessions → Resume or Start New
 - Click on any project to view its sessions
 - Each session shows the first message and timestamp
 - Resume sessions directly or start new ones
+- Choose your preferred AI provider for new sessions
 
 ### Creating Agents
 
@@ -126,9 +151,21 @@ CC Agents → Create Agent → Configure → Execute
 ```
 
 1. **Design Your Agent**: Set name, icon, and system prompt
-2. **Configure Model**: Choose between available Claude models
-3. **Set Sandbox Profile**: Apply security restrictions
-4. **Execute Tasks**: Run your agent on any project
+2. **Choose AI Provider**: Select Claude Code or Gemini CLI
+3. **Configure Model**: Choose between available models for your provider
+4. **Set Sandbox Profile**: Apply security restrictions
+5. **Execute Tasks**: Run your agent on any project
+
+### Multi-AI Workflows
+
+```
+Session → Provider Settings → Switch Provider → Continue Conversation
+```
+
+- Start a conversation with one AI provider
+- Switch to another provider mid-conversation
+- Compare responses from different AI services
+- Leverage each provider's unique strengths
 
 ### Tracking Usage
 
@@ -136,7 +173,8 @@ CC Agents → Create Agent → Configure → Execute
 Menu → Usage Dashboard → View Analytics
 ```
 
-- Monitor costs by model, project, and date
+- Monitor costs by provider, model, project, and date
+- Compare usage patterns across Claude and Gemini
 - Export data for reports
 - Set up usage alerts (coming soon)
 
@@ -155,6 +193,8 @@ Menu → MCP Manager → Add Server → Configure
 ### Prerequisites
 
 - **Claude Code CLI**: Install from [Claude's official site](https://claude.ai/code)
+- **Gemini CLI**: Install via `npm install -g @google/gemini-cli`
+- **API Keys**: Obtain API keys for your preferred AI providers
 
 ### Release Executables Will Be Published Soon
 
@@ -162,7 +202,7 @@ Menu → MCP Manager → Add Server → Configure
 
 ### Prerequisites
 
-Before building Claudia from source, ensure you have the following installed:
+Before building Craig from source, ensure you have the following installed:
 
 #### System Requirements
 
@@ -192,9 +232,10 @@ Before building Claudia from source, ensure you have the following installed:
    # Windows: Download from https://git-scm.com
    ```
 
-4. **Claude Code CLI**
-   - Download and install from [Claude's official site](https://claude.ai/code)
-   - Ensure `claude` is available in your PATH
+4. **AI Provider CLIs**
+   - **Claude Code CLI**: Download from [Claude's official site](https://claude.ai/code)
+   - **Gemini CLI**: `npm install -g @google/gemini-cli`
+   - Ensure both are available in your PATH
 
 #### Platform-Specific Dependencies
 
@@ -235,8 +276,8 @@ brew install pkg-config
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/getAsterisk/claudia.git
-   cd claudia
+   git clone https://github.com/Nichols-AI/Craig.git
+   cd Craig
    ```
 
 2. **Install Frontend Dependencies**
@@ -299,7 +340,11 @@ brew install pkg-config
    - Ensure Claude Code CLI is installed and in your PATH
    - Test with `claude --version`
 
-5. **Build fails with "out of memory"**
+5. **"gemini command not found" error**
+   - Ensure Gemini CLI is installed: `npm install -g @google/gemini-cli`
+   - Test with `gemini --version`
+
+6. **Build fails with "out of memory"**
    - Try building with fewer parallel jobs: `cargo build -j 2`
    - Close other applications to free up RAM
 
@@ -310,17 +355,17 @@ After building, you can verify the application works:
 ```bash
 # Run the built executable directly
 # Linux/macOS
-./src-tauri/target/release/claudia
+./src-tauri/target/release/craig
 
 # Windows
-./src-tauri/target/release/claudia.exe
+./src-tauri/target/release/craig.exe
 ```
 
 ### Build Artifacts
 
 The build process creates several artifacts:
 
-- **Executable**: The main Claudia application
+- **Executable**: The main Craig application
 - **Installers** (when using `tauri build`):
   - `.deb` package (Linux)
   - `.AppImage` (Linux)
@@ -339,11 +384,12 @@ All artifacts are located in `src-tauri/target/release/bundle/`.
 - **UI Framework**: Tailwind CSS v4 + shadcn/ui
 - **Database**: SQLite (via rusqlite)
 - **Package Manager**: Bun
+- **AI Providers**: Claude Code CLI + Gemini CLI
 
 ### Project Structure
 
 ```
-claudia/
+craig/
 ├── src/                   # React frontend
 │   ├── components/        # UI components
 │   ├── lib/               # API client & utilities
@@ -351,9 +397,14 @@ claudia/
 ├── src-tauri/             # Rust backend
 │   ├── src/
 │   │   ├── commands/      # Tauri command handlers
+│   │   │   ├── claude.rs  # Claude Code integration
+│   │   │   ├── gemini.rs  # Gemini CLI integration
+│   │   │   └── usage.rs   # Multi-provider analytics
 │   │   ├── sandbox/       # Security sandboxing
-│   │   └── checkpoint/    # Timeline management
+│   │   ├── checkpoint/    # Timeline management
+│   │   └── gemini_binary.rs # Gemini CLI management
 │   └── tests/             # Rust test suite
+├── docs/                  # Documentation
 └── public/                # Public assets
 ```
 
@@ -376,15 +427,25 @@ cd src-tauri && cargo test
 cd src-tauri && cargo fmt
 ```
 
+### Multi-AI Development
+
+Craig extends the original Claudia architecture with:
+
+- **Provider abstraction**: Unified interface for different AI services
+- **Binary management**: Automatic detection and management of AI CLI tools
+- **Configuration system**: Provider-specific settings and API keys
+- **Usage tracking**: Multi-provider analytics and cost tracking
+
 ## 🔒 Security
 
-Claudia implements multiple layers of security:
+Craig implements multiple layers of security:
 
 1. **Process Isolation**: Agents run in separate sandboxed processes
 2. **Filesystem Access Control**: Whitelist-based file access
 3. **Network Restrictions**: Control external connections
 4. **Audit Logging**: All security violations are logged
 5. **No Data Collection**: Everything stays local on your machine
+6. **Credential Security**: Secure storage of API keys for all providers
 
 ## 🤝 Contributing
 
@@ -393,11 +454,12 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Areas for Contribution
 
 - 🐛 Bug fixes and improvements
-- ✨ New features and enhancements
+- ✨ New AI provider integrations
 - 📚 Documentation improvements
 - 🎨 UI/UX enhancements
 - 🧪 Test coverage
 - 🌐 Internationalization
+- 📊 Enhanced analytics features
 
 ## 📄 License
 
@@ -405,23 +467,24 @@ This project is licensed under the AGPL License - see the [LICENSE](LICENSE) fil
 
 ## 🙏 Acknowledgments
 
+- **Original Project**: [Claudia](https://github.com/getAsterisk/claudia) by [Asterisk](https://asterisk.so/) - The foundation that made Craig possible
 - Built with [Tauri](https://tauri.app/) - The secure framework for building desktop apps
 - [Claude](https://claude.ai) by Anthropic
+- [Gemini](https://gemini.google.com) by Google
+- The open source community for their amazing tools and libraries
 
 ---
 
 <div align="center">
   <p>
-    <strong>Made with ❤️ by the <a href="https://asterisk.so/">Asterisk</a></strong>
+    <strong>Forked and enhanced with ❤️ by <a href="https://github.com/Nichols-AI">NicholsAI</a></strong>
   </p>
   <p>
-    <a href="https://github.com/getAsterisk/claudia/issues">Report Bug</a>
+    <strong>Original project by <a href="https://asterisk.so/">Asterisk</a></strong>
+  </p>
+  <p>
+    <a href="https://github.com/Nichols-AI/Craig/issues">Report Bug</a>
     ·
-    <a href="https://github.com/getAsterisk/claudia/issues">Request Feature</a>
+    <a href="https://github.com/Nichols-AI/Craig/issues">Request Feature</a>
   </p>
 </div>
-
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=getAsterisk/claudia&type=Date)](https://www.star-history.com/#getAsterisk/claudia&Date)

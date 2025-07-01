@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "aarch64")))]
 use gaol::sandbox::{
     ChildSandbox, ChildSandboxMethods, Command as GaolCommand, Sandbox, SandboxMethods,
 };
@@ -11,13 +11,13 @@ use tokio::process::Command;
 
 /// Sandbox executor for running commands in a sandboxed environment
 pub struct SandboxExecutor {
-    #[cfg(unix)]
+    #[cfg(all(unix, not(target_arch = "aarch64")))]
     profile: gaol::profile::Profile,
     project_path: PathBuf,
     serialized_profile: Option<SerializedProfile>,
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "aarch64")))]
 impl SandboxExecutor {
     /// Create a new sandbox executor with the given profile
     pub fn new(profile: gaol::profile::Profile, project_path: PathBuf) -> Self {
@@ -316,6 +316,82 @@ impl SandboxExecutor {
     }
 }
 
+// ARM64 Unix implementation - no gaol sandboxing due to compatibility issues
+#[cfg(all(unix, target_arch = "aarch64"))]
+impl SandboxExecutor {
+    /// Create a new sandbox executor (no gaol on ARM64)
+    pub fn new(_profile: (), project_path: PathBuf) -> Self {
+        warn!("Gaol sandboxing not available on ARM64, running without sandbox");
+        Self {
+            project_path,
+            serialized_profile: None,
+        }
+    }
+
+    /// Create a new sandbox executor with serialized profile (no gaol on ARM64)
+    pub fn new_with_serialization(
+        _profile: (),
+        project_path: PathBuf,
+        serialized_profile: SerializedProfile,
+    ) -> Self {
+        warn!("Gaol sandboxing not available on ARM64, running without sandbox");
+        Self {
+            project_path,
+            serialized_profile: Some(serialized_profile),
+        }
+    }
+
+    /// Execute a command without sandbox (ARM64)
+    pub fn execute_sandboxed_spawn(
+        &self,
+        command: &str,
+        args: &[&str],
+        cwd: &Path,
+    ) -> Result<std::process::Child> {
+        info!(
+            "Executing command without sandbox on ARM64: {} {:?}",
+            command, args
+        );
+
+        std::process::Command::new(command)
+            .args(args)
+            .current_dir(cwd)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .context("Failed to spawn process")
+    }
+
+    /// Prepare a command without sandbox (ARM64)
+    pub fn prepare_sandboxed_command(&self, command: &str, args: &[&str], cwd: &Path) -> Command {
+        info!(
+            "Preparing command without sandbox on ARM64: {} {:?}",
+            command, args
+        );
+
+        let mut cmd = Command::new(command);
+        cmd.args(args)
+            .current_dir(cwd)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+
+        cmd
+    }
+
+    /// Extract sandbox rules (no-op on ARM64)
+    fn extract_sandbox_rules(&self) -> Result<SerializedProfile> {
+        Ok(SerializedProfile { operations: vec![] })
+    }
+
+    /// Activate sandbox in child process (no-op on ARM64)
+    pub fn activate_sandbox_in_child() -> Result<()> {
+        debug!("Sandbox activation skipped on ARM64");
+        Ok(())
+    }
+}
+
 // Windows implementation - no sandboxing
 #[cfg(not(unix))]
 impl SandboxExecutor {
@@ -396,7 +472,7 @@ pub fn should_activate_sandbox() -> bool {
 }
 
 /// Helper to create a sandboxed tokio Command
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "aarch64")))]
 pub fn create_sandboxed_command(
     command: &str,
     args: &[&str],
@@ -405,6 +481,19 @@ pub fn create_sandboxed_command(
     project_path: PathBuf,
 ) -> Command {
     let executor = SandboxExecutor::new(profile, project_path);
+    executor.prepare_sandboxed_command(command, args, cwd)
+}
+
+/// Helper to create a sandboxed tokio Command (ARM64 - no sandboxing)
+#[cfg(all(unix, target_arch = "aarch64"))]
+pub fn create_sandboxed_command(
+    command: &str,
+    args: &[&str],
+    cwd: &Path,
+    _profile: (),
+    project_path: PathBuf,
+) -> Command {
+    let executor = SandboxExecutor::new((), project_path);
     executor.prepare_sandboxed_command(command, args, cwd)
 }
 
@@ -424,7 +513,7 @@ pub enum SerializedOperation {
     SystemInfoRead,
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "aarch64")))]
 fn deserialize_profile(
     serialized: SerializedProfile,
     project_path: &Path,
@@ -497,7 +586,7 @@ fn deserialize_profile(
     })
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "aarch64")))]
 fn create_minimal_profile(project_path: PathBuf) -> Result<gaol::profile::Profile> {
     let operations = vec![
         gaol::profile::Operation::FileReadAll(gaol::profile::PathPattern::Subpath(project_path)),

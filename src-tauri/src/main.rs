@@ -3,6 +3,7 @@
 
 mod checkpoint;
 mod claude_binary;
+mod gemini_binary;
 mod commands;
 mod process;
 mod sandbox;
@@ -27,6 +28,10 @@ use commands::claude::{
     read_claude_md_file, restore_checkpoint, resume_claude_code, save_claude_md_file,
     save_claude_settings, save_system_prompt, search_files, track_checkpoint_message,
     track_session_messages, update_checkpoint_settings, ClaudeProcessState,
+};
+use commands::gemini::{
+    execute_gemini_command, get_gemini_config, get_gemini_models, get_gemini_version,
+    save_gemini_config, stop_gemini_process, test_gemini_connection, GeminiProcessState,
 };
 use commands::mcp::{
     mcp_add, mcp_add_from_claude_desktop, mcp_add_json, mcp_get, mcp_get_server_status, mcp_list,
@@ -94,6 +99,9 @@ fn main() {
 
             // Initialize Claude process state
             app.manage(ClaudeProcessState::default());
+
+            // Initialize Gemini process state
+            app.manage(GeminiProcessState::default());
 
             Ok(())
         })
@@ -193,7 +201,14 @@ fn main() {
             mcp_read_project_config,
             mcp_save_project_config,
             capture_url_screenshot,
-            cleanup_screenshot_temp_files
+            cleanup_screenshot_temp_files,
+            get_gemini_version,
+            execute_gemini_command,
+            stop_gemini_process,
+            get_gemini_config,
+            save_gemini_config,
+            test_gemini_connection,
+            get_gemini_models
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

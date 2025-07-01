@@ -1,18 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Claudia",
+  "productName": "Craig",
   "version": "0.1.0",
-  "identifier": "claudia.asterisk.so",
+  "identifier": "craig.asterisk.so",
   "build": {
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
-        "title": "Claudia",
+        "title": "Craig",
         "width": 800,
         "height": 600
       }

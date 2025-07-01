@@ -9,6 +9,7 @@ use tauri::command;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UsageEntry {
     timestamp: String,
+    provider: String,  // "claude" or "gemini"
     model: String,
     input_tokens: u64,
     output_tokens: u64,
@@ -28,13 +29,28 @@ pub struct UsageStats {
     total_cache_creation_tokens: u64,
     total_cache_read_tokens: u64,
     total_sessions: u64,
+    by_provider: Vec<ProviderUsage>,
     by_model: Vec<ModelUsage>,
     by_date: Vec<DailyUsage>,
     by_project: Vec<ProjectUsage>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ProviderUsage {
+    provider: String,
+    total_cost: f64,
+    total_tokens: u64,
+    input_tokens: u64,
+    output_tokens: u64,
+    cache_creation_tokens: u64,
+    cache_read_tokens: u64,
+    session_count: u64,
+    models_used: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ModelUsage {
+    provider: String,
     model: String,
     total_cost: f64,
     total_tokens: u64,
@@ -73,6 +89,12 @@ const SONNET_4_INPUT_PRICE: f64 = 3.0;
 const SONNET_4_OUTPUT_PRICE: f64 = 15.0;
 const SONNET_4_CACHE_WRITE_PRICE: f64 = 3.75;
 const SONNET_4_CACHE_READ_PRICE: f64 = 0.30;
+
+// Gemini pricing constants (per million tokens)
+const GEMINI_PRO_INPUT_PRICE: f64 = 0.125;
+const GEMINI_PRO_OUTPUT_PRICE: f64 = 0.375;
+const GEMINI_ULTRA_INPUT_PRICE: f64 = 2.0;
+const GEMINI_ULTRA_OUTPUT_PRICE: f64 = 6.0;
 
 #[derive(Debug, Deserialize)]
 struct JsonlEntry {
@@ -123,6 +145,20 @@ fn calculate_cost(model: &str, usage: &UsageData) -> f64 {
                 SONNET_4_CACHE_WRITE_PRICE,
                 SONNET_4_CACHE_READ_PRICE,
             )
+        } else if model.contains("gemini-pro") {
+            (
+                GEMINI_PRO_INPUT_PRICE,
+                GEMINI_PRO_OUTPUT_PRICE,
+                0.0, // Gemini doesn't have cache pricing yet
+                0.0,
+            )
+        } else if model.contains("gemini-ultra") {
+            (
+                GEMINI_ULTRA_INPUT_PRICE,
+                GEMINI_ULTRA_OUTPUT_PRICE,
+                0.0, // Gemini doesn't have cache pricing yet
+                0.0,
+            )
         } else {
             // Return 0 for unknown models to avoid incorrect cost estimations.
             (0.0, 0.0, 0.0, 0.0)
@@ -135,6 +171,16 @@ fn calculate_cost(model: &str, usage: &UsageData) -> f64 {
         + (cache_read_tokens * cache_read_price / 1_000_000.0);
 
     cost
+}
+
+fn get_provider_from_model(model: &str) -> String {
+    if model.contains("claude") || model.contains("opus") || model.contains("sonnet") {
+        "claude".to_string()
+    } else if model.contains("gemini") {
+        "gemini".to_string()
+    } else {
+        "unknown".to_string()
+    }
 }
 
 fn parse_jsonl_file(
@@ -202,12 +248,15 @@ fn parse_jsonl_file(
                                 .clone()
                                 .unwrap_or_else(|| encoded_project_name.to_string());
 
+                            let model_name = message
+                                .model
+                                .clone()
+                                .unwrap_or_else(|| "unknown".to_string());
+                            
                             entries.push(UsageEntry {
                                 timestamp: entry.timestamp,
-                                model: message
-                                    .model
-                                    .clone()
-                                    .unwrap_or_else(|| "unknown".to_string()),
+                                provider: get_provider_from_model(&model_name),
+                                model: model_name,
                                 input_tokens: usage.input_tokens.unwrap_or(0),
                                 output_tokens: usage.output_tokens.unwrap_or(0),
                                 cache_creation_tokens: usage
@@ -308,6 +357,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
             by_model: vec![],
             by_date: vec![],
             by_project: vec![],
+            by_provider: vec![],
         });
     }
 
@@ -351,6 +401,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
         let model_stat = model_stats
             .entry(entry.model.clone())
             .or_insert(ModelUsage {
+                provider: "claude".to_string(),
                 model: entry.model.clone(),
                 total_cost: 0.0,
                 total_tokens: 0,
@@ -445,6 +496,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
         by_model,
         by_date,
         by_project,
+        by_provider: vec![],
     })
 }
 
@@ -495,6 +547,7 @@ pub fn get_usage_by_date_range(start_date: String, end_date: String) -> Result<U
             by_model: vec![],
             by_date: vec![],
             by_project: vec![],
+            by_provider: vec![],
         });
     }
 
@@ -521,6 +574,7 @@ pub fn get_usage_by_date_range(start_date: String, end_date: String) -> Result<U
         let model_stat = model_stats
             .entry(entry.model.clone())
             .or_insert(ModelUsage {
+                provider: "claude".to_string(),
                 model: entry.model.clone(),
                 total_cost: 0.0,
                 total_tokens: 0,
@@ -615,6 +669,7 @@ pub fn get_usage_by_date_range(start_date: String, end_date: String) -> Result<U
         by_model,
         by_date,
         by_project,
+        by_provider: vec![],
     })
 }
 

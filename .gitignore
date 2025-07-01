@@ -25,3 +25,60 @@ dist-ssr
 temp_lib/
 
 .cursor/
+
+# Tauri build outputs
+src-tauri/target/
+src-tauri/gen/
+
+# API Keys and sensitive configuration
+**/*config*.json
+**/*credentials*.json
+**/*api*key*
+**/*.key
+**/*.pem
+**/*.p12
+**/.env*
+**/claude_config.json
+**/gemini_config.json
+
+# Application data directories
+~/.claude/
+**/app_data/
+**/AppData/
+**/LocalStorage/
+**/cache/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Screenshots and user data
+Screenshot*
+*.png
+*.jpg
+*.jpeg
+*.gif
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!public/**/*.gif
+!src/assets/**/*.png
+!src/assets/**/*.jpg
+!src/assets/**/*.jpeg
+!src/assets/**/*.gif
+
+# SQLite databases (may contain usage data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime configuration
+runtime_config.json
+user_settings.json
+craig.log
+
+# Tauri updater signature keys
+*.key
+*.pub

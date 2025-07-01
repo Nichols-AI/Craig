@@ -84,10 +84,24 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
   
   // Credits content
   const creditsContent = [
-    { type: "header", text: "CLAUDIA v0.1.0" },
-    { type: "subheader", text: "[ A STRATEGIC PROJECT BY ASTERISK ]" },
+    { type: "header", text: "CRAIG v0.1.0" },
+    { type: "subheader", text: "[ FORKED AND ENHANCED BY NICHOLSAI ]" },
     { type: "spacer" },
-    { type: "section", title: "━━━ CREDITS ━━━" },
+    { type: "section", title: "━━━ ABOUT ━━━" },
+    { type: "text", content: "Craig is a multi-AI desktop client forked from" },
+    { type: "text", content: "the original Claudia project by Asterisk." },
+    { type: "text", content: "Enhanced with Gemini CLI integration and" },
+    { type: "text", content: "multi-provider AI support." },
+    { type: "spacer" },
+    { type: "section", title: "━━━ NEW FEATURES ━━━" },
+    { type: "credit", role: "MULTI-AI", name: "Claude Code + Gemini CLI" },
+    { type: "credit", role: "UNIFIED UI", name: "Single interface for both AIs" },
+    { type: "credit", role: "PROVIDER AWARE", name: "Multi-provider usage analytics" },
+    { type: "credit", role: "SEAMLESS SWITCH", name: "Change AI mid-conversation" },
+    { type: "credit", role: "SUBSCRIPTION", name: "Pro subscription support" },
+    { type: "spacer" },
+    { type: "section", title: "━━━ ORIGINAL CREDITS ━━━" },
+    { type: "credit", role: "ORIGINAL PROJECT", name: "Claudia by Asterisk" },
     { type: "credit", role: "POWERED BY", name: "Anthropic Claude 4" },
     { type: "credit", role: "CLAUDE CODE", name: "The Ultimate Coding Assistant" },
     { type: "credit", role: "MCP PROTOCOL", name: "Model Context Protocol" },
@@ -101,16 +115,18 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
     { type: "credit", role: "PACKAGE MANAGER", name: "Bun" },
     { type: "spacer" },
     { type: "section", title: "━━━ SPECIAL THANKS ━━━" },
+    { type: "text", content: "To Asterisk for the original Claudia project" },
     { type: "text", content: "To the open source community" },
     { type: "text", content: "To all the beta testers" },
     { type: "text", content: "To everyone who believed in this project" },
     { type: "spacer" },
     { type: "ascii", content: `
-     ▄▄▄· .▄▄ · ▄▄▄▄▄▄▄▄ .▄▄▄  ▪  .▄▄ · ▄ •▄ 
-    ▐█ ▀█ ▐█ ▀. •██  ▀▄.▀·▀▄ █·██ ▐█ ▀. █▌▄▌▪
-    ▄█▀▀█ ▄▀▀▀█▄ ▐█.▪▐▀▀▪▄▐▀▀▄ ▐█·▄▀▀▀█▄▐▀▀▄·
-    ▐█ ▪▐▌▐█▄▪▐█ ▐█▌·▐█▄▄▌▐█•█▌▐█▌▐█▄▪▐█▐█.█▌
-     ▀  ▀  ▀▀▀▀  ▀▀▀  ▀▀▀ .▀  ▀▀▀▀ ▀▀▀▀ ·▀  ▀
+    ███╗   ██╗██╗ ██████╗██╗  ██╗ ██████╗ ██╗     ███████╗ █████╗ ██╗
+    ████╗  ██║██║██╔════╝██║  ██║██╔═══██╗██║     ██╔════╝██╔══██╗██║
+    ██╔██╗ ██║██║██║     ███████║██║   ██║██║     ███████╗███████║██║
+    ██║╚██╗██║██║██║     ██╔══██║██║   ██║██║     ╚════██║██╔══██║██║
+    ██║ ╚████║██║╚██████╗██║  ██║╚██████╔╝███████╗███████║██║  ██║██║
+    ╚═╝  ╚═══╝╚═╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝
     ` },
     { type: "spacer" },
     { type: "text", content: "Remember: Sharing is caring!" },
@@ -147,7 +163,7 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
             <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border">
               <div className="flex items-center space-x-2">
                 <div className="text-sm font-bold tracking-wider font-mono text-foreground">
-                  CLAUDIA.NFO
+                  CRAIG.NFO
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -191,23 +207,15 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
             
             {/* NFO Content */}
             <div className="relative h-[calc(100%-40px)] bg-background overflow-hidden">
-              {/* Asterisk Logo Section (Fixed at top) */}
+              {/* NicholsAI Logo Section (Fixed at top) */}
               <div className="absolute top-0 left-0 right-0 bg-background z-10 pb-4 text-center">
-                <button
-                  className="inline-block mt-4 hover:scale-110 transition-transform cursor-pointer"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await openUrl("https://asterisk.so");
-                  }}
-                >
-                  <img 
-                    src={asteriskLogo} 
-                    alt="Asterisk" 
-                    className="h-20 w-auto mx-auto filter brightness-0 invert opacity-90"
-                  />
-                </button>
+                <div className="mt-4 mb-2">
+                  <div className="text-4xl font-bold tracking-wider text-foreground">
+                    NicholsAI
+                  </div>
+                </div>
                 <div className="text-muted-foreground text-sm font-mono mt-2 tracking-wider">
-                  A strategic project by Asterisk
+                  Forked and enhanced from Asterisk's Claudia
                 </div>
               </div>
               

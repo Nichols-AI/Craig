@@ -90,6 +90,32 @@ export interface ClaudeInstallation {
   source: string;
 }
 
+/**
+ * Represents the Gemini CLI version status
+ */
+export interface GeminiVersionStatus {
+  /** Whether Gemini CLI is installed and working */
+  is_installed: boolean;
+  /** The version string if available */
+  version?: string;
+  /** The full output from the command */
+  output: string;
+}
+
+/**
+ * Represents Gemini API configuration
+ */
+export interface GeminiConfig {
+  /** API key for Gemini API */
+  api_key?: string;
+  /** Selected model (gemini-pro, gemini-ultra, etc.) */
+  model?: string;
+  /** Project ID for Google Cloud */
+  project_id?: string;
+  /** Additional configuration options */
+  [key: string]: any;
+}
+
 // Sandbox API types
 export interface SandboxProfile {
   id?: number;
@@ -1930,6 +1956,111 @@ export const api = {
       return await invoke<ClaudeInstallation[]>("list_claude_installations");
     } catch (error) {
       console.error("Failed to list Claude installations:", error);
+      throw error;
+    }
+  },
+
+  // Gemini API methods
+
+  /**
+   * Get Gemini CLI version and installation status
+   * @returns Promise resolving to Gemini version status
+   */
+  async getGeminiVersion(): Promise<GeminiVersionStatus> {
+    try {
+      return await invoke<GeminiVersionStatus>("get_gemini_version");
+    } catch (error) {
+      console.error("Failed to get Gemini version:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Execute a Gemini CLI command
+   * @param prompt - The prompt to send to Gemini
+   * @param model - Optional model to use
+   * @param projectPath - Optional project path
+   * @returns Promise resolving to the command output
+   */
+  async executeGeminiCommand(
+    prompt: string, 
+    model?: string, 
+    projectPath?: string
+  ): Promise<string> {
+    try {
+      return await invoke<string>("execute_gemini_command", { 
+        prompt, 
+        model, 
+        projectPath 
+      });
+    } catch (error) {
+      console.error("Failed to execute Gemini command:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Stop the currently running Gemini process
+   * @returns Promise resolving when the process is stopped
+   */
+  async stopGeminiProcess(): Promise<void> {
+    try {
+      return await invoke<void>("stop_gemini_process");
+    } catch (error) {
+      console.error("Failed to stop Gemini process:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get Gemini configuration
+   * @returns Promise resolving to Gemini config
+   */
+  async getGeminiConfig(): Promise<GeminiConfig> {
+    try {
+      return await invoke<GeminiConfig>("get_gemini_config");
+    } catch (error) {
+      console.error("Failed to get Gemini config:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Save Gemini configuration
+   * @param config - The Gemini configuration to save
+   * @returns Promise resolving when config is saved
+   */
+  async saveGeminiConfig(config: GeminiConfig): Promise<void> {
+    try {
+      return await invoke<void>("save_gemini_config", { config });
+    } catch (error) {
+      console.error("Failed to save Gemini config:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Test Gemini API connection
+   * @returns Promise resolving to connection status
+   */
+  async testGeminiConnection(): Promise<boolean> {
+    try {
+      return await invoke<boolean>("test_gemini_connection");
+    } catch (error) {
+      console.error("Failed to test Gemini connection:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get available Gemini models
+   * @returns Promise resolving to array of model names
+   */
+  async getGeminiModels(): Promise<string[]> {
+    try {
+      return await invoke<string[]>("get_gemini_models");
+    } catch (error) {
+      console.error("Failed to get Gemini models:", error);
       throw error;
     }
   },

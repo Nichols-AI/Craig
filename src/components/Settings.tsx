@@ -10,7 +10,8 @@ import {
   Code,
   Settings2,
   Terminal,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   api, 
   type ClaudeSettings,
-  type ClaudeInstallation
+  type ClaudeInstallation,
+  type GeminiConfig,
+  type GeminiVersionStatus
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Toast, ToastContainer } from "@/components/ui/toast";
@@ -74,6 +77,12 @@ export const Settings: React.FC<SettingsProps> = ({
   // Claude binary path state
   const [currentBinaryPath, setCurrentBinaryPath] = useState<string | null>(null);
   const [selectedInstallation, setSelectedInstallation] = useState<ClaudeInstallation | null>(null);
+
+  // Gemini state
+  const [geminiConfig, setGeminiConfig] = useState<GeminiConfig>({});
+  const [geminiVersion, setGeminiVersion] = useState<GeminiVersionStatus | null>(null);
+  const [geminiModels, setGeminiModels] = useState<string[]>([]);
+  const [testingGeminiConnection, setTestingGeminiConnection] = useState(false);
   const [binaryPathChanged, setBinaryPathChanged] = useState(false);
 
 
@@ -81,6 +90,7 @@ export const Settings: React.FC<SettingsProps> = ({
   useEffect(() => {
     loadSettings();
     loadClaudeBinaryPath();
+    loadGeminiSettings();
   }, []);
 
   /**
@@ -152,6 +162,27 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   };
 
+  /**
+   * Loads Gemini configuration and status
+   */
+  const loadGeminiSettings = async () => {
+    try {
+      // Load Gemini version
+      const version = await api.getGeminiVersion();
+      setGeminiVersion(version);
+
+      // Load Gemini config
+      const config = await api.getGeminiConfig();
+      setGeminiConfig(config);
+
+      // Load available models
+      const models = await api.getGeminiModels();
+      setGeminiModels(models);
+    } catch (err) {
+      console.error("Failed to load Gemini settings:", err);
+      // Don't set error state for Gemini - it's optional
+    }
+  };
 
   /**
    * Saves the current settings
@@ -368,6 +399,10 @@ export const Settings: React.FC<SettingsProps> = ({
               <TabsTrigger value="advanced" className="gap-2">
                 <Code className="h-4 w-4 text-purple-500" />
                 Advanced
+              </TabsTrigger>
+              <TabsTrigger value="gemini" className="gap-2">
+                <Sparkles className="h-4 w-4 text-blue-500" />
+                Gemini
               </TabsTrigger>
             </TabsList>
             
@@ -680,6 +715,167 @@ export const Settings: React.FC<SettingsProps> = ({
                       This shows the raw JSON that will be saved to ~/.claude/settings.json
                     </p>
                   </div>
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Gemini Settings */}
+            <TabsContent value="gemini" className="space-y-6">
+              <Card className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-semibold mb-4">Gemini Configuration</h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Configure Google Gemini CLI integration and API settings
+                    </p>
+                  </div>
+
+                  {/* Gemini Version Status */}
+                  <div className="space-y-2">
+                    <Label>Installation Status</Label>
+                    <div className="p-3 rounded-md bg-muted">
+                      {geminiVersion ? (
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "h-3 w-3 rounded-full",
+                            geminiVersion.is_installed ? "bg-green-500" : "bg-red-500"
+                          )} />
+                          <span className="text-sm">
+                            {geminiVersion.is_installed 
+                              ? `Gemini CLI ${geminiVersion.version || 'installed'}`
+                              : 'Gemini CLI not found'
+                            }
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Checking installation...</span>
+                        </div>
+                      )}
+                    </div>
+                    {!geminiVersion?.is_installed && (
+                      <p className="text-xs text-muted-foreground">
+                        Install with: npm install -g @google/gemini-cli
+                      </p>
+                    )}
+                  </div>
+
+                  {/* API Key */}
+                  <div className="space-y-2">
+                    <Label htmlFor="geminiApiKey">API Key</Label>
+                    <Input
+                      id="geminiApiKey"
+                      type="password"
+                      placeholder="Enter your Gemini API key"
+                      value={geminiConfig.api_key || ""}
+                      onChange={(e) => setGeminiConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Get your API key from Google AI Studio
+                    </p>
+                  </div>
+
+                  {/* Default Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="geminiModel">Default Model</Label>
+                    <select
+                      id="geminiModel"
+                      className="w-full p-2 rounded-md border border-input bg-background"
+                      value={geminiConfig.model || "gemini-pro"}
+                      onChange={(e) => setGeminiConfig(prev => ({ ...prev, model: e.target.value }))}
+                    >
+                      {geminiModels.length > 0 ? (
+                        geminiModels.map(model => (
+                          <option key={model} value={model}>{model}</option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="gemini-pro">gemini-pro</option>
+                          <option value="gemini-pro-vision">gemini-pro-vision</option>
+                          <option value="gemini-ultra">gemini-ultra</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Project ID */}
+                  <div className="space-y-2">
+                    <Label htmlFor="geminiProjectId">Google Cloud Project ID (Optional)</Label>
+                    <Input
+                      id="geminiProjectId"
+                      placeholder="your-project-id"
+                      value={geminiConfig.project_id || ""}
+                      onChange={(e) => setGeminiConfig(prev => ({ ...prev, project_id: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Only required for certain enterprise features
+                    </p>
+                  </div>
+
+                  {/* Test Connection */}
+                  <div className="space-y-2">
+                    <Label>Connection Test</Label>
+                    <Button
+                      onClick={async () => {
+                        setTestingGeminiConnection(true);
+                        try {
+                          const success = await api.testGeminiConnection();
+                          setToast({ 
+                            message: success ? "Gemini connection successful!" : "Gemini connection failed", 
+                            type: success ? "success" : "error" 
+                          });
+                        } catch (error) {
+                          setToast({ 
+                            message: `Connection test failed: ${error}`, 
+                            type: "error" 
+                          });
+                        } finally {
+                          setTestingGeminiConnection(false);
+                        }
+                      }}
+                      disabled={testingGeminiConnection || !geminiVersion?.is_installed}
+                      className="w-full"
+                    >
+                      {testingGeminiConnection ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Testing...
+                        </>
+                      ) : (
+                        "Test Connection"
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Save Button */}
+                  <Button
+                    onClick={async () => {
+                      setSaving(true);
+                      try {
+                        await api.saveGeminiConfig(geminiConfig);
+                        setToast({ message: "Gemini settings saved successfully!", type: "success" });
+                      } catch (error) {
+                        setToast({ message: `Failed to save Gemini settings: ${error}`, type: "error" });
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving}
+                    className="w-full"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Gemini Settings
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
             </TabsContent>

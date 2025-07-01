@@ -1,14 +1,14 @@
 [package]
-name = "claudia"
+name = "craig"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Craig - Multi-AI Desktop Client"
 authors = ["you"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "claudia_lib"
+name = "craig_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]
@@ -49,7 +49,7 @@ zstd = "0.13"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 walkdir = "2"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(all(unix, not(target_arch = "aarch64")))'.dependencies]
 gaol = "0.2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
