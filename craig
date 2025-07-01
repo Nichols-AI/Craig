@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Simple Craig launcher
+cd "$(dirname "$0")"
+
+echo "Starting Craig..."
+
+# Start Craig (frontend + backend)
+bun run tauri dev
