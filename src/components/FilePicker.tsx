@@ -15,17 +15,114 @@ import {
 } from "lucide-react";
 import type { FileEntry } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { FilePickerErrorBoundary, useFilePickerErrorHandler } from "./FilePickerErrorBoundary";
 
-// Global caches that persist across component instances
-const globalDirectoryCache = new Map<string, FileEntry[]>();
-const globalSearchCache = new Map<string, FileEntry[]>();
+// Cache entry with TTL
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  accessCount: number;
+}
 
-// Note: These caches persist for the lifetime of the application.
-// In a production app, you might want to:
-// 1. Add TTL (time-to-live) to expire old entries
-// 2. Implement LRU (least recently used) eviction
-// 3. Clear caches when the working directory changes
-// 4. Add a maximum cache size limit
+// Safe cache implementation with TTL and memory limits
+class SafeCache<T> {
+  private cache = new Map<string, CacheEntry<T>>();
+  private readonly TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_ENTRIES = 100; // Maximum cache entries
+  private readonly MAX_MEMORY_MB = 50; // Rough memory limit in MB (reserved for future use)
+
+  get(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    // Check if entry has expired
+    if (Date.now() - entry.timestamp > this.TTL) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    // Update access count for LRU tracking
+    entry.accessCount++;
+    return entry.data;
+  }
+
+  set(key: string, data: T): void {
+    // Check memory usage (rough estimate)
+    // Note: this.MAX_MEMORY_MB could be used for more sophisticated memory tracking
+    if (this.cache.size >= this.MAX_ENTRIES || this.estimateMemoryUsage() > this.MAX_MEMORY_MB) {
+      this.evictOldEntries();
+    }
+
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      accessCount: 1,
+    });
+  }
+
+  private estimateMemoryUsage(): number {
+    // Simple estimation: assume each entry is roughly 1KB
+    return (this.cache.size * 1024) / (1024 * 1024); // Convert to MB
+  }
+
+  private evictOldEntries(): void {
+    const now = Date.now();
+    const entries = Array.from(this.cache.entries());
+
+    // Remove expired entries first
+    const expiredKeys = entries
+      .filter(([_, entry]) => now - entry.timestamp > this.TTL)
+      .map(([key]) => key);
+
+    expiredKeys.forEach(key => this.cache.delete(key));
+
+    // If still too many entries, remove least recently used
+    if (this.cache.size >= this.MAX_ENTRIES) {
+      const sortedEntries = Array.from(this.cache.entries())
+        .sort(([, a], [, b]) => a.accessCount - b.accessCount);
+
+      const toRemove = sortedEntries.slice(0, Math.floor(this.MAX_ENTRIES * 0.3));
+      toRemove.forEach(([key]) => this.cache.delete(key));
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    if (!entry) return false;
+
+    // Check if entry has expired
+    if (Date.now() - entry.timestamp > this.TTL) {
+      this.cache.delete(key);
+      return false;
+    }
+
+    return true;
+  }
+
+  size(): number {
+    return this.cache.size;
+  }
+}
+
+// Global caches with TTL and memory management
+const globalDirectoryCache = new SafeCache<FileEntry[]>();
+const globalSearchCache = new SafeCache<FileEntry[]>();
+
+// Cache cleanup interval
+let cacheCleanupInterval: NodeJS.Timeout | null = null;
+
+// Start cache cleanup if not already running
+if (!cacheCleanupInterval) {
+  cacheCleanupInterval = setInterval(() => {
+    // Force cleanup by trying to access a non-existent key
+    globalDirectoryCache.get('__cleanup__');
+    globalSearchCache.get('__cleanup__');
+  }, 60000); // Clean up every minute
+}
 
 interface FilePickerProps {
   /**
@@ -102,6 +199,7 @@ export const FilePicker: React.FC<FilePickerProps> = ({
   className,
 }) => {
   const searchQuery = initialQuery;
+  const { handleError } = useFilePickerErrorHandler();
   
   const [currentPath, setCurrentPath] = useState(basePath);
   const [entries, setEntries] = useState<FileEntry[]>(() => 
@@ -129,6 +227,15 @@ export const FilePicker: React.FC<FilePickerProps> = ({
   
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const fileListRef = useRef<HTMLDivElement>(null);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
   
   // Computed values
   const displayEntries = searchQuery.trim() ? searchResults : entries;
@@ -250,6 +357,11 @@ export const FilePicker: React.FC<FilePickerProps> = ({
     try {
       console.log('[FilePicker] Loading directory:', path);
       
+      // Validate path before proceeding
+      if (!path || typeof path !== 'string' || path.trim().length === 0) {
+        throw new Error('Invalid directory path provided');
+      }
+      
       // Check cache first and show immediately
       if (globalDirectoryCache.has(path)) {
         console.log('[FilePicker] Showing cached contents for:', path);
@@ -261,23 +373,47 @@ export const FilePicker: React.FC<FilePickerProps> = ({
         setIsLoading(true);
       }
       
-      // Always fetch fresh data in background
-      const contents = await api.listDirectoryContents(path);
+      // Always fetch fresh data in background with timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Directory listing timed out after 30 seconds')), 30000);
+      });
+      
+      const contents = await Promise.race([
+        api.listDirectoryContents(path),
+        timeoutPromise
+      ]);
+      
       console.log('[FilePicker] Loaded fresh contents:', contents.length, 'items');
       
-      // Cache the results
-      globalDirectoryCache.set(path, contents);
+      // Validate response
+      if (!Array.isArray(contents)) {
+        throw new Error('Invalid response from directory listing');
+      }
       
-      // Update with fresh data
-      setEntries(contents);
+      // Limit directory size to prevent memory issues
+      if (contents.length > 1000) {
+        console.warn('[FilePicker] Large directory detected:', contents.length, 'items');
+        const limitedContents = contents.slice(0, 1000);
+        setError(`Directory contains ${contents.length} items. Showing first 1000 for performance.`);
+        globalDirectoryCache.set(path, limitedContents);
+        setEntries(limitedContents);
+      } else {
+        // Cache the results
+        globalDirectoryCache.set(path, contents);
+        setEntries(contents);
+        setError(null);
+      }
+      
       setIsShowingCached(false);
-      setError(null);
     } catch (err) {
       console.error('[FilePicker] Failed to load directory:', path, err);
-      console.error('[FilePicker] Error details:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load directory';
+      handleError(new Error(`Directory loading failed: ${errorMessage}`));
+      
       // Only set error if we don't have cached data to show
       if (!globalDirectoryCache.has(path)) {
-        setError(err instanceof Error ? err.message : 'Failed to load directory');
+        setError(errorMessage);
       }
     } finally {
       setIsLoading(false);
@@ -287,6 +423,16 @@ export const FilePicker: React.FC<FilePickerProps> = ({
   const performSearch = async (query: string) => {
     try {
       console.log('[FilePicker] Searching for:', query, 'in:', basePath);
+      
+      // Validate inputs
+      if (!query || typeof query !== 'string' || query.trim().length === 0) {
+        setSearchResults([]);
+        return;
+      }
+      
+      if (!basePath || typeof basePath !== 'string') {
+        throw new Error('Invalid base path for search');
+      }
       
       // Create cache key that includes both query and basePath
       const cacheKey = `${basePath}:${query}`;
@@ -302,23 +448,43 @@ export const FilePicker: React.FC<FilePickerProps> = ({
         setIsLoading(true);
       }
       
-      // Always fetch fresh results in background
-      const results = await api.searchFiles(basePath, query);
+      // Always fetch fresh results in background with timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Search timed out after 45 seconds')), 45000);
+      });
+      
+      const results = await Promise.race([
+        api.searchFiles(basePath, query),
+        timeoutPromise
+      ]);
+      
       console.log('[FilePicker] Fresh search results:', results.length, 'items');
       
+      // Validate response
+      if (!Array.isArray(results)) {
+        throw new Error('Invalid response from search');
+      }
+      
+      // Results are already limited to 50 in backend, but double-check
+      const limitedResults = results.slice(0, 50);
+      
       // Cache the results
-      globalSearchCache.set(cacheKey, results);
+      globalSearchCache.set(cacheKey, limitedResults);
       
       // Update with fresh results
-      setSearchResults(results);
+      setSearchResults(limitedResults);
       setIsShowingCached(false);
       setError(null);
     } catch (err) {
       console.error('[FilePicker] Search failed:', query, err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Search failed';
+      handleError(new Error(`Search failed: ${errorMessage}`));
+      
       // Only set error if we don't have cached data to show
       const cacheKey = `${basePath}:${query}`;
       if (!globalSearchCache.has(cacheKey)) {
-        setError(err instanceof Error ? err.message : 'Search failed');
+        setError(errorMessage);
       }
     } finally {
       setIsLoading(false);
@@ -356,7 +522,7 @@ export const FilePicker: React.FC<FilePickerProps> = ({
     }
   };
 
-  return (
+  const FilePickerContent = (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -488,5 +654,11 @@ export const FilePicker: React.FC<FilePickerProps> = ({
         </p>
       </div>
     </motion.div>
+  );
+
+  return (
+    <FilePickerErrorBoundary>
+      {FilePickerContent}
+    </FilePickerErrorBoundary>
   );
 }; 

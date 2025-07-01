@@ -56,6 +56,13 @@ gaol = "0.2"
 cocoa = "0.26"
 objc = "0.2"
 
+[profile.dev]
+# Optimize for faster development builds
+opt-level = 1      # Some optimization for faster runtime
+debug = true       # Keep debug info
+incremental = true # Enable incremental compilation (default)
+codegen-units = 16 # Use more parallel codegen units
+
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]

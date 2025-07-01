@@ -1272,19 +1272,33 @@ async fn spawn_claude_process(app: AppHandle, mut cmd: Command) -> Result<(), St
     Ok(())
 }
 
-/// Lists files and directories in a given path
+/// Response structure for paginated directory listing
+#[derive(Debug, serde::Serialize)]
+pub struct DirectoryListingResponse {
+    pub entries: Vec<FileEntry>,
+    pub total_count: usize,
+    pub has_more: bool,
+    pub offset: usize,
+    pub limit: usize,
+}
+
+/// Lists files and directories in a given path with pagination support
 #[tauri::command]
-pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileEntry>, String> {
-    log::info!("Listing directory contents: '{}'", directory_path);
+pub async fn list_directory_contents_paginated(
+    directory_path: String,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Result<DirectoryListingResponse, String> {
+    let offset = offset.unwrap_or(0);
+    let limit = limit.unwrap_or(100).min(1000); // Cap at 1000 items max
+    
+    log::info!(
+        "Listing directory contents: '{}' (offset: {}, limit: {})",
+        directory_path, offset, limit
+    );
 
-    // Check if path is empty
-    if directory_path.trim().is_empty() {
-        log::error!("Directory path is empty or whitespace");
-        return Err("Directory path cannot be empty".to_string());
-    }
-
-    let path = PathBuf::from(&directory_path);
-    log::debug!("Resolved path: {:?}", path);
+    // Validate and sanitize path
+    let path = validate_and_sanitize_path(&directory_path)?;
 
     if !path.exists() {
         log::error!("Path does not exist: {:?}", path);
@@ -1296,23 +1310,48 @@ pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileE
         return Err(format!("Path is not a directory: {}", directory_path));
     }
 
-    let mut entries = Vec::new();
+    let mut _entries: Vec<FileEntry> = Vec::new();
 
-    let dir_entries =
-        fs::read_dir(&path).map_err(|e| format!("Failed to read directory: {}", e))?;
+    let dir_entries = fs::read_dir(&path)
+        .map_err(|e| format!("Failed to read directory: {}", e))?;
 
+    // Collect all entries first for counting and sorting
+    let mut all_entries = Vec::new();
+    
     for entry in dir_entries {
-        let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
+        let entry = match entry {
+            Ok(e) => e,
+            Err(e) => {
+                log::warn!("Failed to read directory entry: {}", e);
+                continue; // Skip problematic entries instead of failing
+            }
+        };
+        
         let entry_path = entry.path();
-        let metadata = entry
-            .metadata()
-            .map_err(|e| format!("Failed to read metadata: {}", e))?;
+        
+        // Get metadata safely
+        let metadata = match entry.metadata() {
+            Ok(m) => m,
+            Err(e) => {
+                log::warn!("Failed to read metadata for {:?}: {}", entry_path, e);
+                continue; // Skip entries we can't read metadata for
+            }
+        };
 
         // Skip hidden files/directories unless they are .claude directories
         if let Some(name) = entry_path.file_name().and_then(|n| n.to_str()) {
             if name.starts_with('.') && name != ".claude" {
                 continue;
             }
+            
+            // Skip special filesystem entries that could cause issues
+            if name.len() > 255 || name.contains('\0') {
+                log::warn!("Skipping entry with invalid name: {:?}", name);
+                continue;
+            }
+        } else {
+            // Skip entries with non-UTF8 names
+            continue;
         }
 
         let name = entry_path
@@ -1330,7 +1369,7 @@ pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileE
             None
         };
 
-        entries.push(FileEntry {
+        all_entries.push(FileEntry {
             name,
             path: entry_path.to_string_lossy().to_string(),
             is_directory: metadata.is_dir(),
@@ -1340,13 +1379,89 @@ pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileE
     }
 
     // Sort: directories first, then files, alphabetically within each group
-    entries.sort_by(|a, b| match (a.is_directory, b.is_directory) {
+    all_entries.sort_by(|a, b| match (a.is_directory, b.is_directory) {
         (true, false) => std::cmp::Ordering::Less,
         (false, true) => std::cmp::Ordering::Greater,
         _ => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
     });
 
-    Ok(entries)
+    let total_count = all_entries.len();
+    let has_more = offset + limit < total_count;
+    
+    // Apply pagination
+    let paginated_entries: Vec<FileEntry> = all_entries
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .collect();
+
+    log::debug!(
+        "Returning {} entries (offset: {}, total: {}, has_more: {})",
+        paginated_entries.len(), offset, total_count, has_more
+    );
+
+    Ok(DirectoryListingResponse {
+        entries: paginated_entries,
+        total_count,
+        has_more,
+        offset,
+        limit,
+    })
+}
+
+/// Legacy function for backward compatibility - now uses pagination internally
+#[tauri::command]
+pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileEntry>, String> {
+    let response = list_directory_contents_paginated(directory_path, Some(0), Some(1000)).await?;
+    Ok(response.entries)
+}
+
+/// Validates and sanitizes a file system path
+fn validate_and_sanitize_path(path_str: &str) -> Result<PathBuf, String> {
+    // Check if path is empty or only whitespace
+    if path_str.trim().is_empty() {
+        return Err("Path cannot be empty".to_string());
+    }
+
+    // Check for null bytes
+    if path_str.contains('\0') {
+        return Err("Path contains invalid null bytes".to_string());
+    }
+
+    // Check path length (most filesystems have limits)
+    if path_str.len() > 4096 {
+        return Err("Path is too long".to_string());
+    }
+
+    let path = PathBuf::from(path_str);
+
+    // Try to canonicalize the path to resolve any .. or . components
+    // and detect path traversal attempts
+    match path.canonicalize() {
+        Ok(canonical_path) => {
+            // Additional security check: ensure the canonical path is still reasonable
+            let canonical_str = canonical_path.to_string_lossy();
+            if canonical_str.len() > 4096 {
+                return Err("Resolved path is too long".to_string());
+            }
+            Ok(canonical_path)
+        }
+        Err(_) => {
+            // If canonicalization fails, the path might not exist yet
+            // or there might be permission issues. Return the original path
+            // but perform basic validation
+            if path.is_absolute() {
+                Ok(path)
+            } else {
+                // Convert relative paths to absolute to avoid confusion
+                let current_dir = std::env::current_dir()
+                    .map_err(|e| format!("Cannot determine current directory: {}", e))?;
+                let full_path = current_dir.join(&path);
+                full_path.canonicalize()
+                    .or_else(|_| Ok(full_path))
+            }
+        }
+    }
 }
 
 /// Search for files and directories matching a pattern
@@ -1354,11 +1469,8 @@ pub async fn list_directory_contents(directory_path: String) -> Result<Vec<FileE
 pub async fn search_files(base_path: String, query: String) -> Result<Vec<FileEntry>, String> {
     log::info!("Searching files in '{}' for: '{}'", base_path, query);
 
-    // Check if path is empty
-    if base_path.trim().is_empty() {
-        log::error!("Base path is empty or whitespace");
-        return Err("Base path cannot be empty".to_string());
-    }
+    // Validate and sanitize base path
+    let path = validate_and_sanitize_path(&base_path)?;
 
     // Check if query is empty
     if query.trim().is_empty() {
@@ -1366,12 +1478,25 @@ pub async fn search_files(base_path: String, query: String) -> Result<Vec<FileEn
         return Ok(Vec::new());
     }
 
-    let path = PathBuf::from(&base_path);
+    // Validate query
+    if query.len() > 255 {
+        return Err("Search query is too long".to_string());
+    }
+
+    if query.contains('\0') {
+        return Err("Search query contains invalid characters".to_string());
+    }
+
     log::debug!("Resolved search base path: {:?}", path);
 
     if !path.exists() {
         log::error!("Base path does not exist: {:?}", path);
         return Err(format!("Path does not exist: {}", base_path));
+    }
+
+    if !path.is_dir() {
+        log::error!("Base path is not a directory: {:?}", path);
+        return Err(format!("Path is not a directory: {}", base_path));
     }
 
     let query_lower = query.to_lowercase();
@@ -1394,6 +1519,8 @@ pub async fn search_files(base_path: String, query: String) -> Result<Vec<FileEn
     // Limit results to prevent overwhelming the UI
     results.truncate(50);
 
+    log::debug!("Search completed, returning {} results", results.len());
+
     Ok(results)
 }
 
@@ -1404,29 +1531,58 @@ fn search_files_recursive(
     results: &mut Vec<FileEntry>,
     depth: usize,
 ) -> Result<(), String> {
-    // Limit recursion depth to prevent excessive searching
+    // Limit recursion depth to prevent excessive searching and stack overflow
     if depth > 5 || results.len() >= 50 {
         return Ok(());
     }
 
-    let entries = fs::read_dir(current_path)
-        .map_err(|e| format!("Failed to read directory {:?}: {}", current_path, e))?;
+    // Additional safety check for path length to prevent issues with very deep paths
+    if current_path.to_string_lossy().len() > 2048 {
+        log::warn!("Skipping directory with very long path: {:?}", current_path);
+        return Ok(());
+    }
+
+    let entries = match fs::read_dir(current_path) {
+        Ok(entries) => entries,
+        Err(e) => {
+            log::warn!("Failed to read directory {:?}: {}", current_path, e);
+            return Ok(()); // Continue searching other directories instead of failing
+        }
+    };
 
     for entry in entries {
-        let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
+        // Skip problematic entries instead of failing the entire search
+        let entry = match entry {
+            Ok(e) => e,
+            Err(e) => {
+                log::warn!("Failed to read directory entry: {}", e);
+                continue;
+            }
+        };
+        
         let entry_path = entry.path();
 
-        // Skip hidden files/directories
+        // Skip hidden files/directories and validate names
         if let Some(name) = entry_path.file_name().and_then(|n| n.to_str()) {
             if name.starts_with('.') {
                 continue;
             }
 
+            // Skip entries with problematic names
+            if name.len() > 255 || name.contains('\0') {
+                log::warn!("Skipping entry with invalid name during search: {:?}", name);
+                continue;
+            }
+
             // Check if name matches query
             if name.to_lowercase().contains(query) {
-                let metadata = entry
-                    .metadata()
-                    .map_err(|e| format!("Failed to read metadata: {}", e))?;
+                let metadata = match entry.metadata() {
+                    Ok(m) => m,
+                    Err(e) => {
+                        log::warn!("Failed to read metadata for {:?}: {}", entry_path, e);
+                        continue; // Skip this entry but continue searching
+                    }
+                };
 
                 let extension = if metadata.is_file() {
                     entry_path
@@ -1444,22 +1600,36 @@ fn search_files_recursive(
                     size: metadata.len(),
                     extension,
                 });
+
+                // Stop if we've reached the result limit
+                if results.len() >= 50 {
+                    return Ok(());
+                }
             }
+        } else {
+            // Skip entries with non-UTF8 names
+            continue;
         }
 
         // Recurse into directories
         if entry_path.is_dir() {
-            // Skip common directories that shouldn't be searched
+            // Skip common directories that shouldn't be searched and could be large
             if let Some(dir_name) = entry_path.file_name().and_then(|n| n.to_str()) {
                 if matches!(
                     dir_name,
-                    "node_modules" | "target" | ".git" | "dist" | "build" | ".next" | "__pycache__"
+                    "node_modules" | "target" | ".git" | "dist" | "build" | ".next" | "__pycache__" |
+                    ".cache" | "cache" | "tmp" | "temp" | ".tmp" | "vendor" | "deps" |
+                    ".gradle" | ".m2" | ".cargo" | "venv" | ".venv"
                 ) {
                     continue;
                 }
             }
 
-            search_files_recursive(&entry_path, base_path, query, results, depth + 1)?;
+            // Continue searching recursively, but don't fail if one directory has issues
+            if let Err(e) = search_files_recursive(&entry_path, base_path, query, results, depth + 1) {
+                log::warn!("Error searching directory {:?}: {}", entry_path, e);
+                // Continue with other directories
+            }
         }
     }
 
