@@ -4,7 +4,6 @@ import { X, Volume2, VolumeX, Github } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import asteriskLogo from "@/assets/nfo/asterisk-logo.png";
 import keygennMusic from "@/assets/nfo/claudia-nfo.ogg";
 
 interface NFOCreditsProps {
@@ -172,7 +171,7 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
                   size="sm"
                   onClick={async (e) => {
                     e.stopPropagation();
-                    await openUrl("https://github.com/getAsterisk/claudia/issues/new");
+                    await openUrl("https://github.com/Nichols-AI/Craig/issues/new");
                   }}
                   className="flex items-center gap-1 h-auto px-2 py-1"
                   title="File a bug"

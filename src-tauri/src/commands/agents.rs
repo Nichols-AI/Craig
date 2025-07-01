@@ -2073,12 +2073,12 @@ pub async fn fetch_github_agents() -> Result<Vec<GitHubAgentFile>, String> {
     info!("Fetching agents from GitHub repository...");
 
     let client = reqwest::Client::new();
-    let url = "https://api.github.com/repos/getAsterisk/claudia/contents/cc_agents";
+    let url = "https://api.github.com/repos/Nichols-AI/Craig/contents/cc_agents";
 
     let response = client
         .get(url)
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "Claudia-App")
+        .header("User-Agent", "Craig-App")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch from GitHub: {}", e))?;
@@ -2094,10 +2094,10 @@ pub async fn fetch_github_agents() -> Result<Vec<GitHubAgentFile>, String> {
         .await
         .map_err(|e| format!("Failed to parse GitHub response: {}", e))?;
 
-    // Filter only .claudia.json files
+    // Filter only .craig.json files
     let agent_files: Vec<GitHubAgentFile> = api_files
         .into_iter()
-        .filter(|f| f.name.ends_with(".claudia.json") && f.file_type == "file")
+        .filter(|f| f.name.ends_with(".craig.json") && f.file_type == "file")
         .filter_map(|f| {
             f.download_url.map(|download_url| GitHubAgentFile {
                 name: f.name,
@@ -2122,7 +2122,7 @@ pub async fn fetch_github_agent_content(download_url: String) -> Result<AgentExp
     let response = client
         .get(&download_url)
         .header("Accept", "application/json")
-        .header("User-Agent", "Claudia-App")
+        .header("User-Agent", "Craig-App")
         .send()
         .await
         .map_err(|e| format!("Failed to download agent: {}", e))?;
