@@ -5,6 +5,7 @@ This document provides a comprehensive reference for Craig's API, covering both 
 ## Table of Contents
 
 - [Overview](#overview)
+- [File Management API](#file-management-api)
 - [Claude Code API](#claude-code-api)
 - [Gemini CLI API](#gemini-cli-api)
 - [Usage Analytics API](#usage-analytics-api)
@@ -18,6 +19,91 @@ Craig provides a unified API for interacting with multiple AI providers through 
 ```typescript
 import { api } from "@/lib/api";
 ```
+
+## File Management API
+
+### Types
+
+```typescript
+interface FileEntry {
+  name: string;
+  path: string;
+  is_directory: boolean;
+  size: number;
+  extension?: string;
+}
+
+interface DirectoryListingResponse {
+  entries: FileEntry[];
+  total_count: number;
+  has_more: boolean;
+  offset: number;
+  limit: number;
+}
+```
+
+### Methods
+
+#### `api.listDirectoryContents(path: string)`
+Lists files and directories in the specified path with enhanced error handling and automatic pagination.
+
+```typescript
+const entries = await api.listDirectoryContents("/path/to/directory");
+// Returns: FileEntry[]
+```
+
+**Features:**
+- **Smart Pagination**: Automatically limits results to 1000 items to prevent memory issues
+- **Path Validation**: Comprehensive validation prevents path injection attacks
+- **Error Recovery**: Gracefully handles broken symlinks, permission issues, and special files
+- **Performance Optimized**: Results are cached with TTL for fast repeated access
+
+#### `api.listDirectoryContentsPaginated(path: string, offset?: number, limit?: number)`
+Advanced directory listing with explicit pagination control.
+
+```typescript
+const response = await api.listDirectoryContentsPaginated("/path/to/directory", 0, 100);
+// Returns: DirectoryListingResponse
+```
+
+**Parameters:**
+- `path`: Directory path to list
+- `offset`: Starting position (default: 0)
+- `limit`: Maximum items to return (default: 100, max: 1000)
+
+#### `api.searchFiles(basePath: string, query: string)`
+Search for files and directories matching a pattern with advanced filtering.
+
+```typescript
+const results = await api.searchFiles("/project/root", "component");
+// Returns: FileEntry[]
+```
+
+**Features:**
+- **Fuzzy Search**: Matches partial filenames and directory names
+- **Smart Filtering**: Automatically excludes large directories like node_modules, target, .git
+- **Result Limiting**: Returns maximum 50 results sorted by relevance
+- **Security**: Query validation prevents injection attacks
+
+### Error Handling
+
+All file operations include comprehensive error handling:
+
+```typescript
+try {
+  const files = await api.listDirectoryContents(path);
+} catch (error) {
+  // Handles: path not found, permission denied, invalid path, etc.
+  console.error('File operation failed:', error.message);
+}
+```
+
+**Common Error Scenarios:**
+- Invalid or non-existent paths
+- Permission denied errors
+- Network mounted filesystems becoming unavailable
+- Paths with invalid characters or excessive length
+- Broken symlinks or special filesystem entries
 
 ## Claude Code API
 

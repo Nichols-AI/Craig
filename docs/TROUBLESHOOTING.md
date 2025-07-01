@@ -6,6 +6,7 @@ This guide helps you diagnose and resolve common issues with Craig.
 
 - [Quick Diagnostics](#quick-diagnostics)
 - [Installation Issues](#installation-issues)
+- [File Management Issues](#file-management-issues)
 - [Provider Connection Problems](#provider-connection-problems)
 - [Configuration Issues](#configuration-issues)
 - [Performance Problems](#performance-problems)
@@ -135,6 +136,119 @@ Solution:
 1. Download WebView2 Runtime from Microsoft
 2. Install the runtime
 3. Restart Craig
+```
+
+## File Management Issues
+
+### FilePicker Crashes and Hangs
+
+#### "Application crashes when selecting large directories"
+Craig v0.1.1+ includes comprehensive FilePicker improvements that prevent most crashes:
+
+**Automatic Solutions (v0.1.1+):**
+- **Smart Pagination**: Directories are automatically limited to 1000 items
+- **Error Boundaries**: Crashes are caught and show recovery UI instead of closing the app
+- **Memory Management**: Intelligent caching prevents memory exhaustion
+
+**If you're on older version:**
+```bash
+# Update to latest version
+git pull origin main
+./craig
+```
+
+#### "FilePicker hangs when browsing certain directories"
+**Common Causes and Solutions:**
+
+1. **Large directories** (node_modules, target, .git):
+   ```bash
+   # These are automatically excluded in v0.1.1+
+   # For older versions, avoid browsing these directories
+   ```
+
+2. **Network mounted filesystems**:
+   ```bash
+   # Check if directory is network mounted
+   df -h /path/to/directory
+   
+   # Use local paths when possible
+   ```
+
+3. **Permission issues**:
+   ```bash
+   # Check directory permissions
+   ls -la /path/to/directory
+   
+   # Fix permissions if needed
+   chmod 755 /path/to/directory
+   ```
+
+#### "Path not found" or "Invalid path" errors
+**v0.1.1+ includes enhanced path validation:**
+- Automatically handles relative vs absolute paths
+- Validates against path injection attacks
+- Provides clear error messages for invalid paths
+
+**Manual troubleshooting:**
+```bash
+# Verify path exists and is accessible
+ls -la "/path/to/directory"
+
+# Check for special characters
+echo "/path/to/directory" | hexdump -C
+
+# Use tab completion to ensure correct path
+```
+
+### File Search Issues
+
+#### "Search returns no results"
+**Enhanced search in v0.1.1+:**
+- Improved fuzzy matching
+- Better handling of hidden files
+- Automatic exclusion of build directories
+
+**Troubleshooting:**
+```bash
+# Check file exists in expected location
+find /project/root -name "*search-term*" -type f
+
+# Verify directory is accessible
+ls -la /project/root
+```
+
+#### "Search is too slow"
+**Optimizations in v0.1.1+:**
+- Maximum 50 results returned
+- Smart directory exclusions (node_modules, target, etc.)
+- 5-directory depth limit
+- Result caching with TTL
+
+### Error Recovery
+
+#### "FilePicker shows error boundary"
+Craig v0.1.1+ includes graceful error recovery:
+
+1. **Click "Try Again"** - Often resolves transient issues
+2. **Navigate to parent directory** - If specific subdirectory has issues
+3. **Clear cache** - In development, restart the app to clear cache
+4. **Check logs** - Look for specific error details in console
+
+#### "Memory errors during file operations"
+**v0.1.1+ Memory Protections:**
+- Automatic pagination prevents loading too many files
+- Smart caching with LRU eviction
+- TTL cache expiration (5 minutes)
+- Memory usage monitoring
+
+**For persistent issues:**
+```bash
+# Monitor memory usage
+htop
+# Look for craig process memory consumption
+
+# Restart application to clear cache
+./craig
 ```
 
 ## Provider Connection Problems

@@ -47,6 +47,7 @@ Think of Craig as your command center for AI-assisted development - bridging the
 - [✨ Features](#-features)
   - [🤖 Multi-AI Provider Support](#-multi-ai-provider-support)
   - [🗂️ Project & Session Management](#️-project--session-management)
+  - [📁 Enhanced File Management](#-enhanced-file-management)
   - [🤖 CC Agents](#-cc-agents)
   - [🛡️ Advanced Sandboxing](#️-advanced-sandboxing)
   - [📊 Multi-Provider Analytics Dashboard](#-multi-provider-analytics-dashboard)
@@ -84,6 +85,14 @@ Think of Craig as your command center for AI-assisted development - bridging the
 - **Smart Search**: Find projects and sessions quickly with built-in search
 - **Session Insights**: See first messages, timestamps, and session metadata at a glance
 - **Multi-Provider Sessions**: Sessions can span multiple AI providers
+
+### 📁 **Enhanced File Management**
+- **Robust FilePicker**: Browse and select files/directories with advanced error handling
+- **Large Directory Support**: Handles directories with thousands of files without crashing
+- **Smart Pagination**: Automatically limits directory listings to prevent memory issues
+- **Path Security**: Advanced validation prevents path injection and filesystem errors
+- **Error Recovery**: Graceful handling of broken symlinks, permission issues, and special files
+- **Performance Optimized**: Smart caching with TTL and memory management for fast navigation
 
 ### 🤖 **CC Agents**
 - **Custom AI Agents**: Create specialized agents with custom system prompts and behaviors
@@ -196,6 +205,29 @@ Menu → MCP Manager → Add Server → Configure
 - **Claude Code CLI**: Install from [Claude's official site](https://claude.ai/code)
 - **Gemini CLI**: Install via `npm install -g @google/gemini-cli`
 - **API Keys**: Obtain API keys for your preferred AI providers
+
+### Quick Start
+
+**For Linux/macOS:**
+```bash
+# Clone and start Craig
+git clone https://github.com/Nichols-AI/Craig.git
+cd Craig
+./craig
+```
+
+**For Windows:**
+```batch
+# Clone and start Craig
+git clone https://github.com/Nichols-AI/Craig.git
+cd Craig
+start-craig.bat
+```
+
+The simple launcher will:
+- Automatically install dependencies if needed
+- Start the Craig desktop application
+- Launch both frontend and optimized backend
 
 ### Release Executables Will Be Published Soon
 

@@ -5,6 +5,37 @@ All notable changes to Craig will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-07-01
+
+### Added
+- **Enhanced FilePicker with Crash Prevention**
+  - Comprehensive error boundaries to prevent application crashes
+  - Smart pagination limiting directory listings to 1000 items max
+  - Robust path validation and sanitization for security
+  - Advanced error handling for broken symlinks and permission issues
+  - Smart caching with TTL (5 minutes) and LRU eviction
+  - Timeout handling for long-running file operations
+
+- **Simple Launcher Script**
+  - New `./craig` command for easy startup
+  - Optimized Rust compilation settings for faster builds
+  - Streamlined installation and startup process
+
+### Fixed
+- **FilePicker Stability Issues**
+  - Fixed crashes when browsing large directories (10k+ files)
+  - Resolved memory exhaustion from unbounded directory listings
+  - Fixed hanging on problematic directories with special files
+  - Prevented path injection vulnerabilities
+  - Improved handling of filesystem edge cases
+
+### Improved
+- **Performance Optimizations**
+  - Faster Rust compilation with optimized development profile
+  - Reduced memory usage through smart cache management
+  - Better incremental compilation for development builds
+  - Enhanced error recovery and graceful fallbacks
+
 ## [0.1.0] - 2025-07-01
 
 ### Added

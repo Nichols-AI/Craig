@@ -24,15 +24,18 @@ Ensure you have all the required tools installed as described in [INSTALLATION.m
 
 ```bash
 # Clone and setup
-git clone https://github.com/your-username/craig.git
-cd craig
-bun install
+git clone https://github.com/Nichols-AI/Craig.git
+cd Craig
 
-# Start development server
+# Simple startup (recommended)
+./craig
+
+# Or manual startup
+bun install
 bun run tauri dev
 ```
 
-This will start the application in development mode with hot reload enabled.
+The `./craig` launcher provides optimized startup with automatic dependency installation and enhanced build settings for faster development.
 
 ### Development Commands
 
