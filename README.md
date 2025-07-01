@@ -11,17 +11,18 @@
   </p>
   
   <p>
-    <a href="#features"><img src="https://img.shields.io/badge/Features-✨-blue?style=for-the-badge" alt="Features"></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/Install-🚀-green?style=for-the-badge" alt="Installation"></a>
+    <a href="https://craig.nicholsai.com"><img src="https://img.shields.io/badge/Website-🌐-blue?style=for-the-badge" alt="Website"></a>
+    <a href="#features"><img src="https://img.shields.io/badge/Features-✨-green?style=for-the-badge" alt="Features"></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/Install-🚀-orange?style=for-the-badge" alt="Installation"></a>
     <a href="#usage"><img src="https://img.shields.io/badge/Usage-📖-purple?style=for-the-badge" alt="Usage"></a>
-    <a href="#development"><img src="https://img.shields.io/badge/Develop-🛠️-orange?style=for-the-badge" alt="Development"></a>
+    <a href="#development"><img src="https://img.shields.io/badge/Develop-🛠️-red?style=for-the-badge" alt="Development"></a>
   </p>
 </div>
 
 ![Craig Multi-AI Desktop Client](https://github.com/user-attachments/assets/a028de9e-d881-44d8-bae5-7326ab3558b9)
 
 > [!TIP]
-> **⭐ Star the repo and follow [@NicholsAI](https://x.com/nichols_ai) on X for updates on multi-AI development tools**.
+> **⭐ Star the repo and follow [@NICHOLSAI1130](https://x.com/NICHOLSAI1130) on X for updates on multi-AI development tools**.
 
 > [!NOTE]
 > **Craig is forked from [Claudia](https://github.com/getAsterisk/claudia) by Asterisk. All original features are preserved while adding comprehensive multi-AI provider support.**
