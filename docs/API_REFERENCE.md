@@ -172,7 +172,7 @@ installations.forEach(install => {
 ```typescript
 interface GeminiConfig {
   api_key?: string;
-  model?: string;
+  model?: string; // Default: "gemini-2.0-flash-exp"
   project_id?: string;
   [key: string]: any;
 }
@@ -241,8 +241,10 @@ Get list of available Gemini models.
 
 ```typescript
 const models = await api.getGeminiModels();
-// ["gemini-pro", "gemini-pro-vision", "gemini-ultra"]
+// ["gemini-2.0-flash-exp"] - Latest model that matches CLI
 ```
+
+**Note:** As of v0.1.1+, Craig uses the latest `gemini-2.0-flash-exp` model to ensure compatibility with the Gemini CLI.
 
 #### `api.stopGeminiProcess()`
 Stop currently running Gemini process.

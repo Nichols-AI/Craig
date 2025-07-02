@@ -81,7 +81,7 @@ export const Settings: React.FC<SettingsProps> = ({
   // Gemini state
   const [geminiConfig, setGeminiConfig] = useState<GeminiConfig>({});
   const [geminiVersion, setGeminiVersion] = useState<GeminiVersionStatus | null>(null);
-  const [geminiModels, setGeminiModels] = useState<string[]>([]);
+  // Removed geminiModels state - now using fixed gemini-2.0-flash-exp model
   const [testingGeminiConnection, setTestingGeminiConnection] = useState(false);
   const [binaryPathChanged, setBinaryPathChanged] = useState(false);
 
@@ -175,9 +175,7 @@ export const Settings: React.FC<SettingsProps> = ({
       const config = await api.getGeminiConfig();
       setGeminiConfig(config);
 
-      // Load available models
-      const models = await api.getGeminiModels();
-      setGeminiModels(models);
+      // Note: Using fixed gemini-2.0-flash-exp model to match CLI
     } catch (err) {
       console.error("Failed to load Gemini settings:", err);
       // Don't set error state for Gemini - it's optional
@@ -781,22 +779,17 @@ export const Settings: React.FC<SettingsProps> = ({
                     <Label htmlFor="geminiModel">Default Model</Label>
                     <select
                       id="geminiModel"
-                      className="w-full p-2 rounded-md border border-input bg-background"
-                      value={geminiConfig.model || "gemini-pro"}
+                      className="w-full p-2 rounded-md border border-input bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                      value={geminiConfig.model || "gemini-2.0-flash-exp"}
                       onChange={(e) => setGeminiConfig(prev => ({ ...prev, model: e.target.value }))}
                     >
-                      {geminiModels.length > 0 ? (
-                        geminiModels.map(model => (
-                          <option key={model} value={model}>{model}</option>
-                        ))
-                      ) : (
-                        <>
-                          <option value="gemini-pro">gemini-pro</option>
-                          <option value="gemini-pro-vision">gemini-pro-vision</option>
-                          <option value="gemini-ultra">gemini-ultra</option>
-                        </>
-                      )}
+                      <option value="gemini-2.0-flash-exp" className="bg-background text-foreground">
+                        gemini-2.0-flash-exp (Latest)
+                      </option>
                     </select>
+                    <p className="text-xs text-muted-foreground">
+                      Using the latest Gemini 2.0 Flash model that matches the CLI
+                    </p>
                   </div>
 
                   {/* Project ID */}

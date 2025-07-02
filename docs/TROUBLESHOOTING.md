@@ -497,6 +497,54 @@ Solutions:
 4. Update to latest Craig version
 ```
 
+### Settings UI Issues
+
+#### "Gemini model dropdown not visible" or "Can't see model options"
+**Fixed in v0.1.1+:**
+- Improved dropdown contrast for both light and dark themes
+- Enhanced focus states and accessibility
+- Model selection now shows "gemini-2.0-flash-exp (Latest)" clearly
+
+**For older versions:**
+```bash
+# Update to latest version
+git pull origin main
+./craig
+
+# Or manually check theme settings
+# Settings → Appearance → Theme
+```
+
+#### "Wrong Gemini model selected" or "Model doesn't match CLI"
+**Automatic fix in v0.1.1+:**
+- Craig now defaults to `gemini-2.0-flash-exp` to match CLI
+- Removed outdated model options that don't work with current CLI
+- Settings automatically use the correct model
+
+**Manual verification:**
+```bash
+# Check what model your CLI uses
+gemini --help | grep -i model
+
+# Verify Craig is using the same model
+# Settings → Gemini → Default Model
+# Should show: "gemini-2.0-flash-exp (Latest)"
+```
+
+#### "Gemini settings not saving"
+**Troubleshooting steps:**
+```bash
+# Check config file permissions
+ls -la ~/.local/share/craig/gemini_config.json
+
+# Verify config file content
+cat ~/.local/share/craig/gemini_config.json | jq .
+
+# Reset config if corrupted
+rm ~/.local/share/craig/gemini_config.json
+# Reconfigure through UI
+```
+
 ### Input and Interaction Issues
 
 #### Keyboard shortcuts not working

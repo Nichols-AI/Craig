@@ -36,6 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Better incremental compilation for development builds
   - Enhanced error recovery and graceful fallbacks
 
+- **Gemini Settings UI**
+  - Fixed model selection to use correct "gemini-2.0-flash-exp" model
+  - Improved dropdown contrast and visibility in dark/light themes
+  - Removed outdated model options that don't match CLI
+  - Enhanced focus states and accessibility
+
 ## [0.1.0] - 2025-07-01
 
 ### Added

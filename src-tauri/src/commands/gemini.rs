@@ -37,7 +37,7 @@ pub struct GeminiVersionStatus {
 pub struct GeminiConfig {
     /// API key for Gemini API
     pub api_key: Option<String>,
-    /// Selected model (gemini-pro, gemini-ultra, etc.)
+    /// Selected model (gemini-2.0-flash-exp, etc.)
     pub model: Option<String>,
     /// Project ID for Google Cloud
     pub project_id: Option<String>,
@@ -50,7 +50,7 @@ impl Default for GeminiConfig {
     fn default() -> Self {
         Self {
             api_key: None,
-            model: Some("gemini-pro".to_string()),
+            model: Some("gemini-2.0-flash-exp".to_string()),
             project_id: None,
             extra: serde_json::json!({}),
         }
@@ -248,12 +248,9 @@ pub async fn test_gemini_connection(app: AppHandle) -> Result<bool, String> {
 /// Get available Gemini models
 #[tauri::command]
 pub async fn get_gemini_models() -> Result<Vec<String>, String> {
-    // Return available Gemini models
-    // This could be expanded to query the API for available models
+    // Return the current supported Gemini model that matches CLI
     Ok(vec![
-        "gemini-pro".to_string(),
-        "gemini-pro-vision".to_string(),
-        "gemini-ultra".to_string(),
+        "gemini-2.0-flash-exp".to_string(),
     ])
 }
 
