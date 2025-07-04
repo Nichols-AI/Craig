@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Fast Craig launcher - optimizes for development speed
+# Usage: ./craig-fast
+
+# Navigate to Craig directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "🚀 Craig Fast Start"
+
+# Check if we're in the right directory
+if [ ! -f "package.json" ] || [ ! -d "src-tauri" ]; then
+    echo "❌ Error: Not in Craig project directory"
+    exit 1
+fi
+
+# Install frontend dependencies if needed (quick check)
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing frontend dependencies..."
+    bun install
+fi
+
+echo "⚡ Starting frontend only (fast development mode)..."
+echo "   Frontend will be available at http://localhost:1420/"
+echo "   Note: Backend features will not work in this mode"
+echo "   Use './craig' for full functionality"
+
+# Start just the frontend for fast development
+exec bun run dev
