@@ -176,4 +176,6 @@ export const ClaudeFileEditor: React.FC<ClaudeFileEditorProps> = ({
       </ToastContainer>
     </div>
   );
-}; 
+};
+
+export default ClaudeFileEditor; 

@@ -212,4 +212,6 @@ export const MCPManager: React.FC<MCPManagerProps> = ({
       </ToastContainer>
     </div>
   );
-}; 
+};
+
+export default MCPManager; 

@@ -632,3 +632,5 @@ export const CCAgents: React.FC<CCAgentsProps> = ({ onBack, className }) => {
     </div>
   );
 };
+
+export default CCAgents;

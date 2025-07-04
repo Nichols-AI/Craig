@@ -168,4 +168,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       </ToastContainer>
     </div>
   );
-}; 
+};
+
+export default MarkdownEditor; 

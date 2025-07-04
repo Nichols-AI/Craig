@@ -137,4 +137,6 @@ export function ClaudeBinaryDialog({ open, onOpenChange, onSuccess, onError }: C
       </DialogContent>
     </Dialog>
   );
-} 
+};
+
+export default ClaudeBinaryDialog; 
