@@ -86,6 +86,11 @@ install_craig() {
         linux-x86_64)
             filename="craig-linux-x86_64.tar.gz"
             ;;
+        linux-aarch64)
+            # For ARM64 Linux, fallback to x86_64 with emulation warning
+            log_warn "ARM64 Linux detected. Installing x86_64 version with emulation."
+            filename="craig-linux-x86_64.tar.gz"
+            ;;
         macos-x86_64)
             filename="craig-macos-x86_64.tar.gz"
             ;;
@@ -98,6 +103,7 @@ install_craig() {
             ;;
         *)
             log_error "Unsupported platform: $platform_arch"
+            log_error "Supported platforms: linux-x86_64, linux-aarch64, macos-x86_64, macos-aarch64, windows-x86_64"
             exit 1
             ;;
     esac
