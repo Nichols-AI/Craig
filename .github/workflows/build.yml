@@ -28,6 +28,7 @@ jobs:
             target: 'x86_64-pc-windows-msvc'
 
     runs-on: ${{ matrix.platform }}
+    timeout-minutes: 60
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -59,9 +60,22 @@ jobs:
       uses: swatinem/rust-cache@v2
       with:
         workspaces: './src-tauri -> target'
+        # More aggressive caching on Windows
+        cache-on-failure: ${{ matrix.platform == 'windows-latest' }}
+        shared-key: ${{ matrix.platform }}-${{ matrix.target }}
 
     - name: Install sccache
       uses: mozilla-actions/sccache-action@v0.0.6
+
+    - name: Configure Windows build (Windows only)
+      if: matrix.platform == 'windows-latest'
+      run: |
+        # Configure git for faster operations
+        git config --global core.autocrlf false
+        git config --global core.longpaths true
+        # Set Windows-specific environment for faster builds
+        echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $env:GITHUB_ENV
+        echo "CARGO_BUILD_JOBS=2" >> $env:GITHUB_ENV
 
     - name: Build frontend
       run: npm run build
@@ -74,6 +88,12 @@ jobs:
         SCCACHE_GHA_ENABLED: "true"
         SCCACHE_GHA_CACHE_TO: sccache-craig-${{ matrix.target }}
         SCCACHE_GHA_CACHE_FROM: sccache-craig-${{ matrix.target }}
+        # Windows optimization: faster linking
+        CARGO_INCREMENTAL: ${{ matrix.platform == 'windows-latest' && '0' || '1' }}
+        CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: ${{ matrix.platform == 'windows-latest' && 'lld-link' || '' }}
+        # Reduce debug info on Windows for faster builds
+        CARGO_PROFILE_DEV_DEBUG: ${{ matrix.platform == 'windows-latest' && '0' || '2' }}
+        CARGO_PROFILE_RELEASE_DEBUG: ${{ matrix.platform == 'windows-latest' && '0' || '1' }}
       with:
         tagName: ${{ github.event.release.tag_name }}
         releaseName: 'Craig v__VERSION__'
