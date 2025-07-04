@@ -43,7 +43,7 @@ futures = "0.3"
 async-trait = "0.1"
 tempfile = "3"
 which = "7"
-headless_chrome = { version = "1.0", features = ["fetch"] }
+headless_chrome = { version = "1.0", features = ["fetch"], optional = true }
 sha2 = "0.10"
 zstd = "0.13"
 uuid = { version = "1.6", features = ["v4", "serde"] }
@@ -57,12 +57,21 @@ cocoa = "0.26"
 objc = "0.2"
 
 [profile.dev]
-# Optimize for faster development builds
-opt-level = 1      # Some optimization for faster runtime
-debug = true       # Keep debug info
-incremental = true # Enable incremental compilation (default)
-codegen-units = 16 # Use more parallel codegen units
+# Optimize for much faster development builds
+opt-level = 0      # No optimization for fastest compilation
+debug = 0          # No debug info for fastest compilation
+incremental = true # Enable incremental compilation
+codegen-units = 256 # Maximize parallel compilation units
+split-debuginfo = "off" # No debug info for faster compilation
+
+[profile.dev.package."*"]
+# Optimize dependencies in dev builds for faster linking
+opt-level = 3
+debug = false
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+# Optional screenshot functionality to speed up development builds
+screenshots = ["dep:headless_chrome"]
+default = ["screenshots"]
