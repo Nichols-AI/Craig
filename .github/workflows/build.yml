@@ -57,21 +57,8 @@ jobs:
       with:
         workspaces: './src-tauri -> target'
 
-    - name: Install sccache (Unix)
-      if: matrix.platform != 'windows-latest'
-      run: |
-        curl -L https://github.com/mozilla/sccache/releases/latest/download/sccache-v0.7.4-x86_64-unknown-linux-musl.tar.gz | tar xz
-        chmod +x sccache-v0.7.4-x86_64-unknown-linux-musl/sccache
-        sudo mv sccache-v0.7.4-x86_64-unknown-linux-musl/sccache /usr/local/bin/
-        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-
-    - name: Install sccache (Windows)
-      if: matrix.platform == 'windows-latest'
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/latest/download/sccache-v0.7.4-x86_64-pc-windows-msvc.tar.gz" -OutFile "sccache.tar.gz"
-        tar -xzf sccache.tar.gz
-        Move-Item "sccache-v0.7.4-x86_64-pc-windows-msvc/sccache.exe" "C:/Windows/System32/"
-        echo "RUSTC_WRAPPER=sccache" >> $env:GITHUB_ENV
+    - name: Install sccache
+      uses: mozilla-actions/sccache-action@v0.0.6
 
     - name: Build frontend
       run: npm run build
