@@ -24,7 +24,7 @@ interface FloatingPromptInputProps {
   /**
    * Callback when prompt is sent
    */
-  onSend: (prompt: string, model: "sonnet" | "opus") => void;
+  onSend: (prompt: string, model: "sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash") => void;
   /**
    * Whether the input is loading
    */
@@ -36,7 +36,7 @@ interface FloatingPromptInputProps {
   /**
    * Default model to select
    */
-  defaultModel?: "sonnet" | "opus";
+  defaultModel?: "sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash";
   /**
    * Project path for file picker
    */
@@ -128,7 +128,7 @@ const ThinkingModeIndicator: React.FC<{ level: number }> = ({ level }) => {
 };
 
 type Model = {
-  id: "sonnet" | "opus";
+  id: "sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash";
   name: string;
   description: string;
   icon: React.ReactNode;
@@ -146,6 +146,18 @@ const MODELS: Model[] = [
     name: "Claude 4 Opus",
     description: "More capable, better for complex tasks",
     icon: <Sparkles className="h-4 w-4" />
+  },
+  {
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    description: "Google's most capable model",
+    icon: <Sparkles className="h-4 w-4 text-blue-500" />
+  },
+  {
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    description: "Fast and efficient from Google",
+    icon: <Zap className="h-4 w-4 text-blue-500" />
   }
 ];
 
@@ -173,7 +185,7 @@ const FloatingPromptInputInner = (
   ref: React.Ref<FloatingPromptInputRef>,
 ) => {
   const [prompt, setPrompt] = useState("");
-  const [selectedModel, setSelectedModel] = useState<"sonnet" | "opus">(defaultModel);
+  const [selectedModel, setSelectedModel] = useState<"sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash">(defaultModel);
   const [selectedThinkingMode, setSelectedThinkingMode] = useState<ThinkingMode>("auto");
   const [isExpanded, setIsExpanded] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
@@ -575,13 +587,13 @@ const FloatingPromptInputInner = (
                               }}
                               className={cn(
                                 "w-full flex items-start gap-3 p-3 rounded-md transition-colors text-left",
-                                "hover:bg-accent",
+                                "hover:bg-accent text-foreground",
                                 selectedThinkingMode === mode.id && "bg-accent"
                               )}
                             >
                               <Brain className="h-4 w-4 mt-0.5" />
                               <div className="flex-1 space-y-1">
-                                <div className="font-medium text-sm">
+                                <div className="font-medium text-sm text-foreground">
                                   {mode.name}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
@@ -668,13 +680,13 @@ const FloatingPromptInputInner = (
                         }}
                         className={cn(
                           "w-full flex items-start gap-3 p-3 rounded-md transition-colors text-left",
-                          "hover:bg-accent",
+                          "hover:bg-accent text-foreground",
                           selectedModel === model.id && "bg-accent"
                         )}
                       >
                         <div className="mt-0.5">{model.icon}</div>
                         <div className="flex-1 space-y-1">
-                          <div className="font-medium text-sm">{model.name}</div>
+                          <div className="font-medium text-sm text-foreground">{model.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {model.description}
                           </div>
@@ -725,13 +737,13 @@ const FloatingPromptInputInner = (
                         }}
                         className={cn(
                           "w-full flex items-start gap-3 p-3 rounded-md transition-colors text-left",
-                          "hover:bg-accent",
+                          "hover:bg-accent text-foreground",
                           selectedThinkingMode === mode.id && "bg-accent"
                         )}
                       >
                         <Brain className="h-4 w-4 mt-0.5" />
                         <div className="flex-1 space-y-1">
-                          <div className="font-medium text-sm">
+                          <div className="font-medium text-sm text-foreground">
                             {mode.name}
                           </div>
                           <div className="text-xs text-muted-foreground">

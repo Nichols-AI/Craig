@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Loader2, Bot, FolderCode } from "lucide-react";
+import { Plus, Loader2, Bot, FolderCode, Sparkles } from "lucide-react";
 import { api, type Project, type Session, type ClaudeMdFile } from "@/lib/api";
 import { OutputCacheProvider } from "@/lib/outputCache";
 import { Button } from "@/components/ui/button";
@@ -8,18 +8,29 @@ import { Card } from "@/components/ui/card";
 import { ProjectList } from "@/components/ProjectList";
 import { SessionList } from "@/components/SessionList";
 import { Topbar } from "@/components/Topbar";
-import { MarkdownEditor } from "@/components/MarkdownEditor";
-import { ClaudeFileEditor } from "@/components/ClaudeFileEditor";
-import { Settings } from "@/components/Settings";
-import { CCAgents } from "@/components/CCAgents";
-import { ClaudeCodeSession } from "@/components/ClaudeCodeSession";
-import { UsageDashboard } from "@/components/UsageDashboard";
-import { MCPManager } from "@/components/MCPManager";
-import { NFOCredits } from "@/components/NFOCredits";
-import { ClaudeBinaryDialog } from "@/components/ClaudeBinaryDialog";
 import { Toast, ToastContainer } from "@/components/ui/toast";
+import { CompilationProgress } from "@/components/CompilationProgress";
+import { useCompilationStatus } from "@/hooks/useCompilationStatus";
+
+// Lazy load heavy components
+const MarkdownEditor = lazy(() => import("@/components/MarkdownEditor"));
+const ClaudeFileEditor = lazy(() => import("@/components/ClaudeFileEditor"));
+const Settings = lazy(() => import("@/components/Settings"));
+const CCAgents = lazy(() => import("@/components/CCAgents"));
+const ClaudeCodeSession = lazy(() => import("@/components/ClaudeCodeSession").then(module => ({ default: module.ClaudeCodeSession })));
+const UsageDashboard = lazy(() => import("@/components/UsageDashboard"));
+const MCPManager = lazy(() => import("@/components/MCPManager"));
+const NFOCredits = lazy(() => import("@/components/NFOCredits"));
+const ClaudeBinaryDialog = lazy(() => import("@/components/ClaudeBinaryDialog"));
 
 type View = "welcome" | "projects" | "agents" | "editor" | "settings" | "claude-file-editor" | "claude-code-session" | "usage-dashboard" | "mcp";
+
+// Loading component for Suspense fallback
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
+);
 
 /**
  * Main App component - Manages the Claude directory browser UI
@@ -36,6 +47,16 @@ function App() {
   const [showNFO, setShowNFO] = useState(false);
   const [showClaudeBinaryDialog, setShowClaudeBinaryDialog] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [showCompilationProgress, setShowCompilationProgress] = useState(true);
+  
+  // Check compilation status
+  const compilationStatus = useCompilationStatus();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[App] Compilation status:', compilationStatus);
+    console.log('[App] Should show overlay:', compilationStatus.isCompiling && showCompilationProgress);
+  }, [compilationStatus, showCompilationProgress]);
 
   // Load projects on mount when in projects view
   useEffect(() => {
@@ -108,6 +129,21 @@ function App() {
   const handleNewSession = async () => {
     setView("claude-code-session");
     setSelectedSession(null);
+  };
+
+  /**
+   * Opens a new Gemini CLI session in the interactive UI
+   */
+  const handleNewGeminiSession = async () => {
+    // Create a session object with Gemini model preset
+    const geminiSession = {
+      id: `gemini-${Date.now()}`,
+      created_at: Math.floor(Date.now() / 1000),
+      path: null,
+      model: "gemini-2.5-pro"
+    };
+    setSelectedSession(geminiSession as any);
+    setView("claude-code-session");
   };
 
   /**
@@ -197,21 +233,27 @@ function App() {
       case "agents":
         return (
           <div className="flex-1 overflow-hidden">
-            <CCAgents onBack={() => setView("welcome")} />
+            <Suspense fallback={<LoadingFallback />}>
+              <CCAgents onBack={() => setView("welcome")} />
+            </Suspense>
           </div>
         );
 
       case "editor":
         return (
           <div className="flex-1 overflow-hidden">
-            <MarkdownEditor onBack={() => setView("welcome")} />
+            <Suspense fallback={<LoadingFallback />}>
+              <MarkdownEditor onBack={() => setView("welcome")} />
+            </Suspense>
           </div>
         );
       
       case "settings":
         return (
           <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
-            <Settings onBack={() => setView("welcome")} />
+            <Suspense fallback={<LoadingFallback />}>
+              <Settings onBack={() => setView("welcome")} />
+            </Suspense>
           </div>
         );
       
@@ -287,11 +329,12 @@ function App() {
                       transition={{ duration: 0.3 }}
                       className="space-y-4"
                     >
-                      {/* New session button at the top */}
+                      {/* New session buttons at the top */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
+                        className="space-y-3"
                       >
                         <Button
                           onClick={handleNewSession}
@@ -300,6 +343,15 @@ function App() {
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           New Claude Code session
+                        </Button>
+                        <Button
+                          onClick={handleNewGeminiSession}
+                          size="default"
+                          variant="outline"
+                          className="w-full border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-950"
+                        >
+                          <Sparkles className="mr-2 h-4 w-4 text-blue-500" />
+                          New Gemini CLI session
                         </Button>
                       </motion.div>
 
@@ -326,31 +378,39 @@ function App() {
       
       case "claude-file-editor":
         return editingClaudeFile ? (
-          <ClaudeFileEditor
-            file={editingClaudeFile}
-            onBack={handleBackFromClaudeFileEditor}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <ClaudeFileEditor
+              file={editingClaudeFile}
+              onBack={handleBackFromClaudeFileEditor}
+            />
+          </Suspense>
         ) : null;
       
       case "claude-code-session":
         return (
-          <ClaudeCodeSession
-            session={selectedSession || undefined}
-            onBack={() => {
-              setSelectedSession(null);
-              setView("projects");
-            }}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <ClaudeCodeSession
+              session={selectedSession || undefined}
+              onBack={() => {
+                setSelectedSession(null);
+                setView("projects");
+              }}
+            />
+          </Suspense>
         );
       
       case "usage-dashboard":
         return (
-          <UsageDashboard onBack={() => setView("welcome")} />
+          <Suspense fallback={<LoadingFallback />}>
+            <UsageDashboard onBack={() => setView("welcome")} />
+          </Suspense>
         );
       
       case "mcp":
         return (
-          <MCPManager onBack={() => setView("welcome")} />
+          <Suspense fallback={<LoadingFallback />}>
+            <MCPManager onBack={() => setView("welcome")} />
+          </Suspense>
         );
       
       default:
@@ -376,19 +436,25 @@ function App() {
         </div>
         
         {/* NFO Credits Modal */}
-        {showNFO && <NFOCredits onClose={() => setShowNFO(false)} />}
+        {showNFO && (
+          <Suspense fallback={<LoadingFallback />}>
+            <NFOCredits onClose={() => setShowNFO(false)} />
+          </Suspense>
+        )}
         
         {/* Claude Binary Dialog */}
-        <ClaudeBinaryDialog
-          open={showClaudeBinaryDialog}
-          onOpenChange={setShowClaudeBinaryDialog}
-          onSuccess={() => {
-            setToast({ message: "Claude binary path saved successfully", type: "success" });
-            // Trigger a refresh of the Claude version check
-            window.location.reload();
-          }}
-          onError={(message) => setToast({ message, type: "error" })}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <ClaudeBinaryDialog
+            open={showClaudeBinaryDialog}
+            onOpenChange={setShowClaudeBinaryDialog}
+            onSuccess={() => {
+              setToast({ message: "Claude binary path saved successfully", type: "success" });
+              // Trigger a refresh of the Claude version check
+              window.location.reload();
+            }}
+            onError={(message) => setToast({ message, type: "error" })}
+          />
+        </Suspense>
         
         {/* Toast Container */}
         <ToastContainer>
@@ -400,6 +466,16 @@ function App() {
             />
           )}
         </ToastContainer>
+        
+        {/* Compilation Progress Overlay - Always show for testing */}
+        <CompilationProgress
+          isCompiling={true}
+          progress={45}
+          currentPackage="tauri-plugin-shell"
+          totalPackages={835}
+          compiledPackages={376}
+          onDismiss={() => setShowCompilationProgress(false)}
+        />
       </div>
     </OutputCacheProvider>
   );

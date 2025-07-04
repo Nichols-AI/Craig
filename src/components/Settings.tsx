@@ -81,7 +81,7 @@ export const Settings: React.FC<SettingsProps> = ({
   // Gemini state
   const [geminiConfig, setGeminiConfig] = useState<GeminiConfig>({});
   const [geminiVersion, setGeminiVersion] = useState<GeminiVersionStatus | null>(null);
-  // Removed geminiModels state - now using fixed gemini-2.0-flash-exp model
+  const [geminiModels, setGeminiModels] = useState<string[]>([]);
   const [testingGeminiConnection, setTestingGeminiConnection] = useState(false);
   const [binaryPathChanged, setBinaryPathChanged] = useState(false);
 
@@ -92,6 +92,13 @@ export const Settings: React.FC<SettingsProps> = ({
     loadClaudeBinaryPath();
     loadGeminiSettings();
   }, []);
+
+  // Set default Gemini model if not set
+  useEffect(() => {
+    if (!geminiConfig.model) {
+      setGeminiConfig(prev => ({ ...prev, model: "gemini-2.5-pro" }));
+    }
+  }, [geminiConfig.model]);
 
   /**
    * Loads the current Claude binary path
@@ -175,7 +182,9 @@ export const Settings: React.FC<SettingsProps> = ({
       const config = await api.getGeminiConfig();
       setGeminiConfig(config);
 
-      // Note: Using fixed gemini-2.0-flash-exp model to match CLI
+      // Load available Gemini models
+      const models = await api.getGeminiModels();
+      setGeminiModels(models);
     } catch (err) {
       console.error("Failed to load Gemini settings:", err);
       // Don't set error state for Gemini - it's optional
@@ -780,15 +789,22 @@ export const Settings: React.FC<SettingsProps> = ({
                     <select
                       id="geminiModel"
                       className="w-full p-2 rounded-md border border-input bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-                      value={geminiConfig.model || "gemini-2.0-flash-exp"}
+                      value={geminiConfig.model || "gemini-2.5-pro"}
                       onChange={(e) => setGeminiConfig(prev => ({ ...prev, model: e.target.value }))}
                     >
-                      <option value="gemini-2.0-flash-exp" className="bg-background text-foreground">
-                        gemini-2.0-flash-exp (Latest)
+                      {/* Always show gemini-2.5-pro first as recommended */}
+                      <option key="gemini-2.5-pro" value="gemini-2.5-pro" className="bg-background text-foreground">
+                        gemini-2.5-pro (Recommended)
                       </option>
+                      {geminiModels.filter(model => model !== "gemini-2.5-pro").map((model) => (
+                        <option key={model} value={model} className="bg-background text-foreground">
+                          {model}
+                          {model === "gemini-2.0-flash-exp" && " (Experimental)"}
+                        </option>
+                      ))}
                     </select>
                     <p className="text-xs text-muted-foreground">
-                      Using the latest Gemini 2.0 Flash model that matches the CLI
+                      Choose the Gemini model for AI interactions. Gemini 2.5 Pro offers the best performance.
                     </p>
                   </div>
 
@@ -889,4 +905,6 @@ export const Settings: React.FC<SettingsProps> = ({
       </ToastContainer>
     </div>
   );
-}; 
+};
+
+export default Settings; 
