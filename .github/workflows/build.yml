@@ -47,6 +47,9 @@ jobs:
     - name: Install frontend dependencies
       run: npm ci
 
+    - name: Install bun
+      uses: oven-sh/setup-bun@v2
+
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -78,6 +81,7 @@ jobs:
         releaseDraft: true
         prerelease: false
         args: ${{ matrix.args }}
+        bundleIdentifier: ai.nichols.craig
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
