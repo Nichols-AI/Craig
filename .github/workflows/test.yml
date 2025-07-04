@@ -79,5 +79,5 @@ jobs:
 
     - name: Test Docker compose
       run: |
-        docker-compose config
+        docker compose config
         echo "Docker compose configuration valid"

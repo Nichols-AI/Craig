@@ -16,6 +16,8 @@ services:
       - craig-sccache:/opt/sccache
       # Persistent node_modules
       - craig-node-modules:/workspace/node_modules
+      # Give access to display for GUI testing (optional)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     ports:
       - "1420:1420"  # Vite dev server
       - "1430:1430"  # Tauri dev server (if needed)
@@ -28,14 +30,11 @@ services:
       # Enable faster linking
       - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang
       - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS=-C link-arg=-fuse-ld=lld
+      # Give access to display for GUI testing (optional)
+      - DISPLAY=${DISPLAY}
     working_dir: /workspace
     # Use host networking for better performance
     network_mode: "host"
-    # Give access to display for GUI testing (optional)
-    environment:
-      - DISPLAY=${DISPLAY}
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     # Run as current user to avoid permission issues
     user: "${UID:-1000}:${GID:-1000}"
 
