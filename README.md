@@ -229,7 +229,20 @@ The simple launcher will:
 - Start the Craig desktop application
 - Launch both frontend and optimized backend
 
-### Release Executables Will Be Published Soon
+### Download Prebuilt Binaries
+
+**Quick Install (Recommended):**
+```bash
+curl -sSL https://craig.nicholsai.com/install.sh | bash
+```
+
+**Manual Downloads:**
+- [Linux (x86_64)](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-linux-x86_64.tar.gz)
+- [macOS Intel](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-macos-x86_64.tar.gz)
+- [macOS Apple Silicon](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-macos-aarch64.tar.gz)
+- [Windows (x86_64)](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-windows-x86_64.zip)
+
+Visit [craig.nicholsai.com](https://craig.nicholsai.com) for the latest downloads and installation instructions.
 
 ## 🔨 Build from Source
 

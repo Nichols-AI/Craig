@@ -1,0 +1,50 @@
+name: Deploy Website
+
+on:
+  repository_dispatch:
+    types: [update-downloads]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Craig repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Get version
+      id: version
+      run: |
+        if [ "${{ github.event.inputs.version }}" != "" ] && [ "${{ github.event.inputs.version }}" != "latest" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event.client_payload.version }}" != "" ]; then
+          echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+        else
+          # Get latest release
+          VERSION=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Update website
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./scripts/update-website.sh "${{ steps.version.outputs.version }}"
+
+    - name: Deploy to craig.nicholsai.com
+      run: |
+        echo "Website deployment completed for version ${{ steps.version.outputs.version }}"
+        echo "The website should now be available at https://craig.nicholsai.com"
+        echo "Download links updated with the latest release assets"
