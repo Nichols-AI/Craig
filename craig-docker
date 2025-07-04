@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# Craig Docker Development Script
+# Usage: ./craig-docker [command]
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Functions
+log_info() {
+    echo -e "${GREEN}[Craig Docker]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[Craig Docker]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[Craig Docker]${NC} $1"
+}
+
+# Check if Docker is installed
+check_docker() {
+    if ! command -v docker &> /dev/null; then
+        log_error "Docker is not installed. Please install Docker first."
+        exit 1
+    fi
+    
+    if ! command -v docker-compose &> /dev/null; then
+        log_error "Docker Compose is not installed. Please install Docker Compose first."
+        exit 1
+    fi
+}
+
+# Build the development container
+build() {
+    log_info "Building Craig development container..."
+    log_warn "This may take 5-10 minutes on first build (dependencies will be cached)"
+    
+    # Set user ID to avoid permission issues
+    export UID=$(id -u)
+    export GID=$(id -g)
+    
+    docker-compose build craig-dev
+    log_info "Container built successfully!"
+}
+
+# Start Craig in development mode
+dev() {
+    log_info "Starting Craig in development mode..."
+    log_info "Frontend will be available at http://localhost:1420"
+    log_warn "Backend compilation may take 30-60 seconds on first run"
+    
+    # Set user ID to avoid permission issues
+    export UID=$(id -u)
+    export GID=$(id -g)
+    
+    docker-compose up craig-dev
+}
+
+# Build Craig for production
+build_release() {
+    log_info "Building Craig for production..."
+    
+    export UID=$(id -u)
+    export GID=$(id -g)
+    
+    docker-compose --profile build up craig-build
+}
+
+# Clean up Docker resources
+clean() {
+    log_warn "Cleaning up Craig Docker resources..."
+    
+    docker-compose down -v
+    docker system prune -f
+    
+    log_info "Cleanup complete!"
+}
+
+# Show logs
+logs() {
+    docker-compose logs -f craig-dev
+}
+
+# Shell into container
+shell() {
+    log_info "Opening shell in Craig container..."
+    docker-compose exec craig-dev bash
+}
+
+# Show help
+help() {
+    echo "Craig Docker Development Tool"
+    echo ""
+    echo "Usage: $0 [command]"
+    echo ""
+    echo "Commands:"
+    echo "  build         Build the development container"
+    echo "  dev           Start Craig in development mode"
+    echo "  build-release Build Craig for production"
+    echo "  logs          Show container logs"
+    echo "  shell         Open shell in container"
+    echo "  clean         Clean up Docker resources"
+    echo "  help          Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 build     # Build container (first time)"
+    echo "  $0 dev       # Start development server"
+    echo "  $0 logs      # View logs in real-time"
+}
+
+# Main script logic
+main() {
+    check_docker
+    
+    case "${1:-dev}" in
+        build)
+            build
+            ;;
+        dev)
+            dev
+            ;;
+        build-release)
+            build_release
+            ;;
+        logs)
+            logs
+            ;;
+        shell)
+            shell
+            ;;
+        clean)
+            clean
+            ;;
+        help|--help|-h)
+            help
+            ;;
+        *)
+            log_error "Unknown command: $1"
+            help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
