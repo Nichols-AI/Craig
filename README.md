@@ -519,6 +519,12 @@ This project is licensed under the AGPL License - see the [LICENSE](LICENSE) fil
 - [Gemini](https://gemini.google.com) by Google
 - The open source community for their amazing tools and libraries
 
+### Contributors
+
+Special thanks to our contributors who help make Craig better:
+
+- **[michael5cents](https://github.com/michael5cents)** - MCP server command fixes and validation improvements
+
 ---
 
 <div align="center">
