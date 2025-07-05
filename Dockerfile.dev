@@ -1,0 +1,78 @@
+# Craig Development Docker Container
+# Optimized for fast rebuilds with pre-compiled dependencies
+FROM rust:1.75-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libwebkit2gtk-4.0-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev \
+    build-essential \
+    curl \
+    wget \
+    git \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18 (latest LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Install bun for faster package management
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
+# Set up Rust environment for faster compilation
+ENV CARGO_HOME=/opt/cargo
+ENV RUSTUP_HOME=/opt/rustup
+ENV PATH="/opt/cargo/bin:$PATH"
+
+# Install cargo tools for faster builds
+RUN cargo install sccache
+ENV RUSTC_WRAPPER=sccache
+ENV SCCACHE_DIR=/opt/sccache
+
+# Pre-install common Rust targets
+RUN rustup target add x86_64-unknown-linux-gnu
+
+# Create workspace
+WORKDIR /workspace
+
+# Copy dependency files first (for Docker layer caching)
+COPY src-tauri/Cargo.toml src-tauri/
+COPY src-tauri/Cargo.lock src-tauri/
+COPY package.json ./
+COPY bun.lock ./
+
+# Create dummy source to pre-compile dependencies
+RUN mkdir -p src-tauri/src && \
+    echo "fn main() {}" > src-tauri/src/main.rs && \
+    echo "// dummy" > src-tauri/src/lib.rs
+
+# Pre-compile all Rust dependencies (this layer will be cached)
+RUN cd src-tauri && cargo build --release
+RUN cd src-tauri && cargo build  # Debug build too
+
+# Install frontend dependencies (this layer will be cached)
+RUN bun install
+
+# Clean up dummy files
+RUN rm -rf src-tauri/src/main.rs src-tauri/src/lib.rs src-tauri/target/*/deps/*craig* src-tauri/target/*/craig*
+
+# Copy the real source code (this layer changes frequently)
+COPY . .
+
+# Expose Vite dev server port
+EXPOSE 1420
+
+# Default command for development
+CMD ["./craig"]
+
+# Optimization: Use multi-stage build for smaller image
+FROM rust:1.75-slim as base
+COPY --from=0 /opt/cargo /opt/cargo
+COPY --from=0 /opt/rustup /opt/rustup
+COPY --from=0 /opt/sccache /opt/sccache

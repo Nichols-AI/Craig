@@ -5,6 +5,19 @@ All notable changes to Craig will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-07-05
+
+### Fixed
+- **MCP Server Command Argument Ordering** (by [michael5cents](https://github.com/michael5cents))
+  - Fixed critical issue with MCP server command argument ordering that could cause parsing failures
+  - Environment variables are now correctly placed after command/URL arguments
+  - Added proper quoting for environment variables containing spaces to prevent command injection
+  - Improved frontend validation with null safety checks to prevent crashes
+  - Enhanced MCP server configuration reliability and error handling
+
+### Contributors
+- **michael5cents** - First external contributor! Fixed critical MCP server argument ordering issues and improved validation
+
 ## [0.1.1] - 2025-07-01
 
 ### Added

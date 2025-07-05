@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft,
@@ -57,7 +57,7 @@ interface ClaudeCodeSessionProps {
  * @example
  * <ClaudeCodeSession onBack={() => setView('projects')} />
  */
-export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
+const ClaudeCodeSessionComponent: React.FC<ClaudeCodeSessionProps> = ({
   session,
   initialProjectPath = "",
   onBack,
@@ -265,7 +265,7 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
     }
   };
 
-  const handleSendPrompt = async (prompt: string, model: "sonnet" | "opus") => {
+  const handleSendPrompt = useCallback(async (prompt: string, model: "sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash") => {
     console.log('[ClaudeCodeSession] handleSendPrompt called with:', { prompt, model, projectPath });
     
     if (!projectPath) {
@@ -393,7 +393,7 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
       setIsLoading(false);
       hasActiveSessionRef.current = false;
     }
-  };
+  }, [projectPath, claudeSessionId, isFirstPrompt]);
 
   const handleCopyAsJsonl = async () => {
     const jsonl = rawJsonlOutput.join('\n');
@@ -480,7 +480,7 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
     setTimelineVersion((v) => v + 1);
   };
 
-  const handleCancelExecution = async () => {
+  const handleCancelExecution = useCallback(async () => {
     if (!isLoading || isCancelling) return;
     
     try {
@@ -512,7 +512,7 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
     } finally {
       setIsCancelling(false);
     }
-  };
+  }, [isLoading, isCancelling, claudeSessionId]);
 
   const handleFork = (checkpointId: string) => {
     setForkCheckpointId(checkpointId);
@@ -910,6 +910,7 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
             isLoading={isLoading}
             disabled={!projectPath}
             projectPath={projectPath}
+            defaultModel={(session as any)?.model as "sonnet" | "opus" | "gemini-2.5-pro" | "gemini-2.5-flash" || "sonnet"}
           />
         </ErrorBoundary>
 
@@ -988,3 +989,6 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
     </div>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const ClaudeCodeSession = memo(ClaudeCodeSessionComponent);

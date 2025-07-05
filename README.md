@@ -229,7 +229,20 @@ The simple launcher will:
 - Start the Craig desktop application
 - Launch both frontend and optimized backend
 
-### Release Executables Will Be Published Soon
+### Download Prebuilt Binaries
+
+**Quick Install (Recommended):**
+```bash
+curl -sSL https://craig.nicholsai.com/install.sh | bash
+```
+
+**Manual Downloads:**
+- [Linux (x86_64)](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-linux-x86_64.tar.gz)
+- [macOS Intel](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-macos-x86_64.tar.gz)
+- [macOS Apple Silicon](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-macos-aarch64.tar.gz)
+- [Windows (x86_64)](https://github.com/Nichols-AI/Craig/releases/latest/download/craig-windows-x86_64.zip)
+
+Visit [craig.nicholsai.com](https://craig.nicholsai.com) for the latest downloads and installation instructions.
 
 ## 🔨 Build from Source
 
@@ -505,6 +518,12 @@ This project is licensed under the AGPL License - see the [LICENSE](LICENSE) fil
 - [Claude](https://claude.ai) by Anthropic
 - [Gemini](https://gemini.google.com) by Google
 - The open source community for their amazing tools and libraries
+
+### Contributors
+
+Special thanks to our contributors who help make Craig better:
+
+- **[michael5cents](https://github.com/michael5cents)** - MCP server command fixes and validation improvements
 
 ---
 

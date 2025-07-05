@@ -133,7 +133,13 @@ pub async fn mcp_add(
     // Prepare owned strings for environment variables
     let env_args: Vec<String> = env
         .iter()
-        .map(|(key, value)| format!("{}={}", key, value))
+        .map(|(key, value)| {
+            if key.contains(' ') || value.contains(' ') {
+                format!("\"{}={}\"", key, value)
+            } else {
+                format!("{}={}", key, value)
+            }
+        })
         .collect();
 
     let mut cmd_args = vec!["add"];
@@ -148,13 +154,7 @@ pub async fn mcp_add(
         cmd_args.push("sse");
     }
 
-    // Add environment variables
-    for (i, _) in env.iter().enumerate() {
-        cmd_args.push("-e");
-        cmd_args.push(&env_args[i]);
-    }
-
-    // Add name
+    // Add the name (required positional argument)
     cmd_args.push(&name);
 
     // Add command/URL based on transport
@@ -186,6 +186,12 @@ pub async fn mcp_add(
                 server_name: None,
             });
         }
+    }
+
+    // Add environment variables after the URL/command
+    for (i, _) in env.iter().enumerate() {
+        cmd_args.push("-e");
+        cmd_args.push(&env_args[i]);
     }
 
     match execute_claude_mcp_command(&app, cmd_args) {

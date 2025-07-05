@@ -1,0 +1,24 @@
+[build]
+# Use all available CPU cores for compilation
+jobs = 8  # Use 8 parallel jobs for faster compilation
+
+# Use default linker (clang not available on this system)
+# [target.x86_64-unknown-linux-gnu]
+# linker = "clang"
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# [target.aarch64-unknown-linux-gnu]
+# linker = "clang" 
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Use faster linker on macOS
+# [target.x86_64-apple-darwin]
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# [target.aarch64-apple-darwin]
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Enable faster incremental compilation
+[env]
+CARGO_INCREMENTAL = "1"
+RUST_LOG = "error"  # Reduce logging overhead

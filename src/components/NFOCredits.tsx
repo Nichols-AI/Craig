@@ -301,4 +301,6 @@ export const NFOCredits: React.FC<NFOCreditsProps> = ({ onClose }) => {
       </motion.div>
     </AnimatePresence>
   );
-}; 
+};
+
+export default NFOCredits; 

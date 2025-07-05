@@ -1,4 +1,6 @@
+#[cfg(feature = "screenshots")]
 use headless_chrome::protocol::cdp::Page;
+#[cfg(feature = "screenshots")]
 use headless_chrome::{Browser, LaunchOptions};
 use std::fs;
 use std::time::Duration;
@@ -17,6 +19,7 @@ use tauri::AppHandle;
 ///
 /// # Returns
 /// * `Result<String, String>` - The path to the saved screenshot file, or an error message
+#[cfg(feature = "screenshots")]
 #[tauri::command]
 pub async fn capture_url_screenshot(
     _app: AppHandle,
@@ -47,6 +50,7 @@ pub async fn capture_url_screenshot(
 }
 
 /// Synchronous helper function to capture screenshots using headless Chrome
+#[cfg(feature = "screenshots")]
 fn capture_screenshot_sync(
     url: String,
     selector: Option<String>,
@@ -205,6 +209,18 @@ fn capture_screenshot_sync(
     log::info!("Screenshot saved to: {:?}", file_path);
 
     Ok(file_path.to_string_lossy().to_string())
+}
+
+// Stub function when screenshots feature is disabled
+#[cfg(not(feature = "screenshots"))]
+#[tauri::command]
+pub async fn capture_url_screenshot(
+    _app: AppHandle,
+    _url: String,
+    _selector: Option<String>,
+    _full_page: bool,
+) -> Result<String, String> {
+    Err("Screenshot functionality is disabled. Rebuild with --features screenshots to enable.".to_string())
 }
 
 /// Cleans up old screenshot files from the temporary directory

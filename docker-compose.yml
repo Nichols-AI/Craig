@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  craig-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+      target: base
+    volumes:
+      # Mount source code for live editing
+      - .:/workspace
+      # Persistent cargo cache for faster rebuilds
+      - craig-cargo-cache:/opt/cargo/registry
+      - craig-target-cache:/workspace/src-tauri/target
+      # Persistent sccache for distributed compilation cache
+      - craig-sccache:/opt/sccache
+      # Persistent node_modules
+      - craig-node-modules:/workspace/node_modules
+      # Give access to display for GUI testing (optional)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    ports:
+      - "1420:1420"  # Vite dev server
+      - "1430:1430"  # Tauri dev server (if needed)
+    environment:
+      - RUST_LOG=debug
+      - RUSTC_WRAPPER=sccache
+      - SCCACHE_DIR=/opt/sccache
+      - CARGO_HOME=/opt/cargo
+      - RUSTUP_HOME=/opt/rustup
+      # Enable faster linking
+      - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang
+      - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS=-C link-arg=-fuse-ld=lld
+      # Give access to display for GUI testing (optional)
+      - DISPLAY=${DISPLAY}
+    working_dir: /workspace
+    # Use host networking for better performance
+    network_mode: "host"
+    # Run as current user to avoid permission issues
+    user: "${UID:-1000}:${GID:-1000}"
+
+  # Optional: Separate service for building releases
+  craig-build:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/workspace
+      - craig-cargo-cache:/opt/cargo/registry
+    working_dir: /workspace
+    command: ["bun", "run", "tauri", "build"]
+    profiles:
+      - build
+
+volumes:
+  craig-cargo-cache:
+    driver: local
+  craig-target-cache:
+    driver: local  
+  craig-sccache:
+    driver: local
+  craig-node-modules:
+    driver: local

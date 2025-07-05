@@ -534,4 +534,6 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ onBack }) => {
       </div>
     </div>
   );
-}; 
+};
+
+export default UsageDashboard; 

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Craig Quick Launcher - Skip backend, just use frontend
+# Usage: ./craig-quick
+
+# Navigate to Craig directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "🚀 Craig Quick Start (Frontend Only)"
+
+# Check if we're in the right directory
+if [ ! -f "package.json" ] || [ ! -d "src-tauri" ]; then
+    echo "❌ Error: Not in Craig project directory"
+    exit 1
+fi
+
+# Install frontend dependencies if needed (quick check)
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing frontend dependencies..."
+    bun install
+fi
+
+echo "⚡ Starting frontend only (instant launch)..."
+echo "   Frontend will be available at http://localhost:1420/"
+echo "   Note: Backend features require full build"
+echo "   For full functionality, use './craig' after first compilation"
+
+# Start just the frontend for instant development
+exec bun run dev

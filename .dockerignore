@@ -1,0 +1,43 @@
+# Docker ignore file for Craig
+# Ignore files that don't need to be in the container
+
+# Build outputs
+target/
+dist/
+node_modules/
+.next/
+out/
+
+# Development files
+.git/
+.gitignore
+README.md
+.env*
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tauri build artifacts
+src-tauri/target/
+
+# Logs
+*.log
+logs/
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
