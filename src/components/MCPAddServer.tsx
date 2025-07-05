@@ -96,7 +96,7 @@ export const MCPAddServer: React.FC<MCPAddServerProps> = ({
    * Validates and adds a stdio server
    */
   const handleAddStdioServer = async () => {
-    if (!stdioName.trim()) {
+    if (!stdioName || !stdioName.trim()) {
       onError("Server name is required");
       return;
     }
@@ -153,12 +153,12 @@ export const MCPAddServer: React.FC<MCPAddServerProps> = ({
    * Validates and adds an SSE server
    */
   const handleAddSseServer = async () => {
-    if (!sseName.trim()) {
+    if (!sseName || !sseName.trim()) {
       onError("Server name is required");
       return;
     }
     
-    if (!sseUrl.trim()) {
+    if (!sseUrl || !sseUrl.trim()) {
       onError("URL is required");
       return;
     }
